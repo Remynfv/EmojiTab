@@ -5,3 +5,8 @@ api-version: 1.17
 authors: [ Legitimoose ]
 description: A plugin for tab completing emojis!
 website: youtube.com/legitimoose
+depend: [ProtocolLib]
+commands:
+  test:
+    description: Test command *world explodes*
+    usage: /test

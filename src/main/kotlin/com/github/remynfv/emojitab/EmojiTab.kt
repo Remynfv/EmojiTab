@@ -1,14 +1,20 @@
 package com.github.remynfv.emojitab
 
+import com.github.remynfv.emojitab.commands.TestCommand
+import com.github.remynfv.emojitab.utils.Messager
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.Bukkit
+
 
 class EmojiTab : JavaPlugin()
 {
+
     override fun onEnable()
     {
         // Plugin startup logic
-        Bukkit.getConsoleSender().sendMessage("Load!")
+        Messager.send("Loaded!")
+
+        getCommand("test")!!.setExecutor(TestCommand(this))
+
     }
 
     override fun onDisable()

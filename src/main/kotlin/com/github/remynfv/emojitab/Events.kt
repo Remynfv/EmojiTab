@@ -3,6 +3,9 @@ package com.github.remynfv.emojitab
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.scheduler.BukkitRunnable
+import java.util.*
 
 
 class Events(private val plugin: EmojiTab) : Listener
@@ -15,5 +18,13 @@ class Events(private val plugin: EmojiTab) : Listener
 
         //Replace the event.message with the emojified version
         event.message(newMessage)
+    }
+
+    @EventHandler
+    fun onPlayerJoin(event: PlayerJoinEvent)
+    {
+        val player = event.player
+
+        plugin.sendEmojiPackets(player)
     }
 }

@@ -6,7 +6,7 @@ import org.bukkit.Bukkit
 object Messager
 {
     private const val PREFIX: String = "§a[EmojiTab] §8> §r"
-    private const val WARNING_PREFIX: String = "§2§lWARN: §r"
+    private const val WARNING_PREFIX: String = "§4WARN§8: §c"
 
     //Send a message to the console
     fun send(message: String)

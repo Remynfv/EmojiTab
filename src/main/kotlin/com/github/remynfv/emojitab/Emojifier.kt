@@ -8,7 +8,8 @@ import org.jetbrains.annotations.NotNull
 
 class Emojifier(private val plugin: EmojiTab)
 {
-    private var emojiMap = HashMap<String, String>() //Shortcode, Emoji
+    //Hashmap that stores all :shortcode: -> Emoji pairs
+    var emojiMap = HashMap<String, String>()
 
     //Returns a string with shortcodes replaced by emojis
     fun emojifyString(message: String): String
@@ -30,7 +31,6 @@ class Emojifier(private val plugin: EmojiTab)
         var newMessage = message
         for (shortcode in emojiMap.keys)
         {
-            Messager.send("$shortcode, ${emojiMap.getValue(shortcode)}")
             val replacement: TextReplacementConfig = TextReplacementConfig.builder().match("/$shortcode/i").replacement(emojiMap.getValue(shortcode)).build()
             newMessage = newMessage.replaceText(replacement)
         }
@@ -71,17 +71,22 @@ class Emojifier(private val plugin: EmojiTab)
 
     private fun registerEmoji(character: String, shortcode: String)
     {
-        val shortcodeWithWrapping = ":$shortcode:"
+        val wrappingCharacter = plugin.wrappingCharacter
+        val shortcodeWithWrapping = wrappingCharacter + shortcode + wrappingCharacter
 
-        if (emojiMap.containsValue(shortcodeWithWrapping))
+        if (emojiMap.containsKey(shortcodeWithWrapping))
         {
-            Messager.warn("")
+            Messager.warn("Duplicate emoji name \"$shortcode\" Please double check your emojis.yml file!")
         }
 
-        if (!emojiMap.containsKey(character))
-            Messager.send("Registered emoji $character to shortcode $shortcodeWithWrapping")
-        else
-            Messager.send("§8Registered emoji $character to shortcode $shortcodeWithWrapping (as alias)")
+        //Log emojis if verbose
+        if(plugin.verbose)
+        {
+            if (!emojiMap.containsKey(character))
+                Messager.send("Registered emoji $character to shortcode $shortcodeWithWrapping")
+            else
+                Messager.send("§8Registered emoji $character to shortcode $shortcodeWithWrapping (as alias)")
+        }
 
         emojiMap[shortcodeWithWrapping] = character
 

@@ -1,1 +1,11 @@
-#Nothing to configure (yet)
+#Emojifier plugin by Legitimoose
+
+#Character to put around emojis, can be left blank if desired.
+#Defaults to semicolon ":"
+emoji-wrapping: ":"
+
+#TODO
+use-permissions: false
+
+#Whether to spam the server log with every emoji's data on startup
+verbose: false

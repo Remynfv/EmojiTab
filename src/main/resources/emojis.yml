@@ -10,13 +10,12 @@ emojis:
         name: registered
     ‼:
         name: double_exclamation_mark
-        aliases: bangbang
+        aliases: [ bangbang, '!!' ]
     ⁉:
         name: exclamation_question_mark
-        aliases: interrobang
+        aliases: [ interrobang, '!?', '?!' ]
     ☀:
         name: sun
-        aliases: sunny
     ☁:
         name: cloud
     ♀:
@@ -40,6 +39,7 @@ emojis:
         aliases: zap
     ⛏:
         name: pick
+        aliases: pickaxe
     ✔:
         name: check_mark
         aliases: heavy_check_mark

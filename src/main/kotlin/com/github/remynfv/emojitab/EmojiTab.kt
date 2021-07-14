@@ -26,7 +26,7 @@ class EmojiTab : JavaPlugin()
     //This is emojis.yml
     private lateinit var emojisConfig: FileConfiguration
 
-    //The Great Emojifire class, where most of the work gets done
+    //The Great Emojifier class, where most of the work gets done
     lateinit var emojifier: Emojifier
 
     //The packets that will be sent out to load the tab completion of emojis
@@ -114,7 +114,6 @@ class EmojiTab : JavaPlugin()
         // Plugin shutdown logic
         for (player in Bukkit.getOnlinePlayers())
             sendRemoveEmojiPackets(player)  //Remove autocorrect bois for all players, to avoid clogging up the tab menu if unwanted
-
     }
 
     fun reloadConfigs()
@@ -161,6 +160,5 @@ class EmojiTab : JavaPlugin()
         {
             e.printStackTrace()
         }
-
     }
 }

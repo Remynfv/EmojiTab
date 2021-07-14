@@ -28,10 +28,13 @@ class Emojifier(private val plugin: EmojiTab)
     //Returns Component with shortcodes replaced by emojis
     fun emojifyMessage(message: @NotNull Component): Component
     {
+        Messager.send(message.toString())
+
         var newMessage = message
         for (shortcode in emojiMap.keys)
         {
-            val replacement: TextReplacementConfig = TextReplacementConfig.builder().match("/$shortcode/i").replacement(emojiMap.getValue(shortcode)).build()
+            //Regex string was broken here, replaced with non regex version to get it working
+            val replacement: TextReplacementConfig = TextReplacementConfig.builder().matchLiteral("$shortcode").replacement(emojiMap.getValue(shortcode)).build()
             newMessage = newMessage.replaceText(replacement)
         }
         return newMessage
@@ -89,8 +92,5 @@ class Emojifier(private val plugin: EmojiTab)
         }
 
         emojiMap[shortcodeWithWrapping] = character
-
-
-
     }
 }

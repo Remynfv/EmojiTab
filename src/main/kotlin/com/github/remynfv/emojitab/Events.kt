@@ -4,8 +4,6 @@ import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.scheduler.BukkitRunnable
-import java.util.*
 
 
 class Events(private val plugin: EmojiTab) : Listener

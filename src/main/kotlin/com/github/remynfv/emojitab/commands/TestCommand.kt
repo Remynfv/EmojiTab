@@ -21,15 +21,7 @@ class TestCommand(val plugin: EmojiTab) : CommandExecutor
             return true
 
 
-
-
         val player: Player = sender
-
-        val addPlayerPacket = WrapperPlayServerPlayerInfo()
-        addPlayerPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
-        val info = PlayerInfoData(WrappedGameProfile(UUID.randomUUID(), "NPC"), 1, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(""))
-        addPlayerPacket.data = List(1) { info }
-        addPlayerPacket.sendPacket(player)
 
         return true
     }

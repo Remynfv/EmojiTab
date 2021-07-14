@@ -16,6 +16,7 @@ import org.bukkit.util.Vector
 import java.io.File
 import java.io.IOException
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class EmojiTab : JavaPlugin()
@@ -33,7 +34,8 @@ class EmojiTab : JavaPlugin()
     lateinit var emojifier: Emojifier
 
     //The packets that will be sent out to load the tab completion of emojis
-    lateinit var addEmojisPackets: ArrayList<WrapperPlayServerPlayerInfo>
+    lateinit var removeEmojisPacket: WrapperPlayServerPlayerInfo
+    lateinit var addEmojisPacket: WrapperPlayServerPlayerInfo
 
 
     /*
@@ -74,67 +76,57 @@ class EmojiTab : JavaPlugin()
 
     private fun generateEmojiPackets()
     {
-        addEmojisPackets = ArrayList<WrapperPlayServerPlayerInfo>(0)
 
 
         //Create a list of players of size = emojiMap.keys.size
+        addEmojisPacket = WrapperPlayServerPlayerInfo()
+        addEmojisPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
 
+        val info = ArrayList<PlayerInfoData>()
         for (shortcode in emojifier.emojiMap.keys)
         {
-            var addEmojisPacket = WrapperPlayServerPlayerInfo()
-            addEmojisPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
+
 
             val shortcode2 = shortcode.take(16)
             val randomUUID = UUID.randomUUID()
-            var gameProfile = WrappedGameProfile(randomUUID, shortcode2)
-            var signature = WrappedSignedProperty("textures", "ewogICJ0aW1lc3RhbXAiIDogMTYyNjI0MDc1NTQzNCwKICAicHJvZmlsZUlkIiA6ICJjZWM0M2ZiYTZkZTQ0NmQ0OTZkZjdjNmI4NGQyMGU1YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJMb2dib2ciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZmYzQ2MDQ5NDEzMDYzMzcyOWQ3NmU3ODkxYWUyODQwYjhhM2FmNGUxODMwZDVhYzYyMzc5NzQ1OGIxYTBkYyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdkZmVhMTZkYzgzYzk3ZGYwMWExMmZhYmJkMTIxNjM1OWMwY2QwZWE0MmY5OTk5YjZlOTdjNTg0OTYzZTk4MCIKICAgIH0KICB9Cn0", "qtulmBYSr7MTdXqh8CSlaDPjePKCgh/es+ayO2u6HoBQ44DBGKVuywZhX1vqGFmRMKDTC+OhYMCOqN5c5aer6prgm2eVMIwn1ep0W1WOsUSV+a9kUlAd1txDQYR4xyKB3J6kTWi/pX2D/1LlldfYBnF2xWqzU+g4cDy4XCXRn+X20nHpTan4cnoBNVpwNYNutgBG9hisnXn1ZPGIV8fZgqDW5ob8JZnP115J4Y0qRj1Ihi3DBTV8V86VMLm9xdKzgYQ3rgp8GO+pXZy3J6smDjWamCi5lgsw2yGxwU40wtAKk+Z+eAy3zAds9LKTXJ4QSSbc4cBhh+WsAOl2bEEu3xDLlx4vuyghW9kyH8Ui1YH0jsdlyJ/Kar4mVITMWppg9wXMgP5lvgGQQ+VyTVO7Sa+UNF+EJmKomOVhTZRWk2wXRD6KEdhUEO6Gk7tJ9TT5jwvvGaarfqZErKGeHxMu8/kGJj0VcxislPN0wcl1ShS5yKOX55n2HA7Ntqst/PF6kmKBNjYKfwxT2fS5nW4XKOj2gNE9Mx32q//uwJ24NiPZcyYl2TmvVySxAf20hx3JrZs5cwDlZdRQk9DjZtQBar9on/Ekh6oeKErp+bB1Awoe2apoVz4nKv4NZoqRfd+HqjJPUrZAjO7kR6XsKazFrXvEtUmIKUCUFZQLVHm6t/E=")
+            val gameProfile = WrappedGameProfile(randomUUID, shortcode2)
+            val signature = WrappedSignedProperty("textures", "ewogICJ0aW1lc3RhbXAiIDogMTYyNjI0MDc1NTQzNCwKICAicHJvZmlsZUlkIiA6ICJjZWM0M2ZiYTZkZTQ0NmQ0OTZkZjdjNmI4NGQyMGU1YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJMb2dib2ciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZmYzQ2MDQ5NDEzMDYzMzcyOWQ3NmU3ODkxYWUyODQwYjhhM2FmNGUxODMwZDVhYzYyMzc5NzQ1OGIxYTBkYyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdkZmVhMTZkYzgzYzk3ZGYwMWExMmZhYmJkMTIxNjM1OWMwY2QwZWE0MmY5OTk5YjZlOTdjNTg0OTYzZTk4MCIKICAgIH0KICB9Cn0", "qtulmBYSr7MTdXqh8CSlaDPjePKCgh/es+ayO2u6HoBQ44DBGKVuywZhX1vqGFmRMKDTC+OhYMCOqN5c5aer6prgm2eVMIwn1ep0W1WOsUSV+a9kUlAd1txDQYR4xyKB3J6kTWi/pX2D/1LlldfYBnF2xWqzU+g4cDy4XCXRn+X20nHpTan4cnoBNVpwNYNutgBG9hisnXn1ZPGIV8fZgqDW5ob8JZnP115J4Y0qRj1Ihi3DBTV8V86VMLm9xdKzgYQ3rgp8GO+pXZy3J6smDjWamCi5lgsw2yGxwU40wtAKk+Z+eAy3zAds9LKTXJ4QSSbc4cBhh+WsAOl2bEEu3xDLlx4vuyghW9kyH8Ui1YH0jsdlyJ/Kar4mVITMWppg9wXMgP5lvgGQQ+VyTVO7Sa+UNF+EJmKomOVhTZRWk2wXRD6KEdhUEO6Gk7tJ9TT5jwvvGaarfqZErKGeHxMu8/kGJj0VcxislPN0wcl1ShS5yKOX55n2HA7Ntqst/PF6kmKBNjYKfwxT2fS5nW4XKOj2gNE9Mx32q//uwJ24NiPZcyYl2TmvVySxAf20hx3JrZs5cwDlZdRQk9DjZtQBar9on/Ekh6oeKErp+bB1Awoe2apoVz4nKv4NZoqRfd+HqjJPUrZAjO7kR6XsKazFrXvEtUmIKUCUFZQLVHm6t/E=")
 
             gameProfile.properties.put("textures", signature)
-            val info = (PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText("")))
-            addEmojisPacket.data = List(1) { info }
-            addEmojisPackets.add(addEmojisPacket)
+            info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText("")))
 
-
-
-            var spawnPlayerPacket = WrapperPlayServerNamedEntitySpawn()
-            spawnPlayerPacket.entityID = Random().nextInt(10000)
-            spawnPlayerPacket.playerUUID = randomUUID
-            spawnPlayerPacket.position = Vector(0, 64, 0)
-
-            spawnPlayerPacket.broadcastPacket()
         }
+        addEmojisPacket.data = info
+
+        //Configure an identical packet to do the reverse.
+        removeEmojisPacket = WrapperPlayServerPlayerInfo()
+        removeEmojisPacket.data = addEmojisPacket.data
+        removeEmojisPacket.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER     //Does this work?
     }
 
     fun sendEmojiPackets(player: Player)
     {
-        for (packet in addEmojisPackets)
-        {
-            packet.sendPacket(player)
-        }
+        addEmojisPacket.sendPacket(player)
     }
 
     fun sendRemoveEmojiPackets(player: Player)
     {
-        for (packet in addEmojisPackets)
-        {
-            //packet.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER     //Surely there is a better way...
-            packet.sendPacket(player)
-        }
+        removeEmojisPacket.sendPacket(player)
     }
 
     override fun onDisable()
     {
         // Plugin shutdown logic
         for (player in Bukkit.getOnlinePlayers())
-            sendRemoveEmojiPackets(player)
+            sendRemoveEmojiPackets(player)  //Remove autocorrect bois for all players, to avoid clogging up the tab menu if unwanted
 
     }
 
     fun reloadConfigs()
     {
         //Load config.yml settings in variables
-        config.getBoolean(Configs.VERBOSE_BOOT)?.let { verbose = it }
-        config.getBoolean(Configs.USE_PERMISSIONS)?.let { usePermissions = it }
+        config.getBoolean(Configs.VERBOSE_BOOT).let { verbose = it }
+        config.getBoolean(Configs.USE_PERMISSIONS).let { usePermissions = it }
         config.getString(Configs.WRAPPING_CHARACTER)?.let { wrappingCharacter = it }
 
         //Load emojis into hashmap

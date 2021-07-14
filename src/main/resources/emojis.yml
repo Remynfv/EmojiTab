@@ -1,0 +1,133 @@
+emojis:
+    ⚔:
+        name: swords
+        aliases: crossed_swords
+    ☠:
+        name: skull_and_crossbones
+    ©:
+        name: copyright
+    ®:
+        name: registered
+    ‼:
+        name: double_exclamation_mark
+        aliases: bangbang
+    ⁉:
+        name: exclamation_question_mark
+        aliases: interrobang
+    ☀:
+        name: sun
+        aliases: sunny
+    ☁:
+        name: cloud
+    ♀:
+        name: female_sign
+    ♂:
+        name: male_sign
+    ♠:
+        name: spade_suit
+        aliases: spades
+    ♣:
+        name: club_suit
+        aliases: clubs
+    ♥:
+        name: heart_suit
+        aliases: hearts
+    ♦:
+        name: diamond_suit
+        aliases: diamonds
+    ⚡:
+        name: high_voltage
+        aliases: zap
+    ⛏:
+        name: pick
+    ✔:
+        name: check_mark
+        aliases: heavy_check_mark
+    ❄:
+        name: snowflake
+    ❌:
+        name: cross_mark
+        aliases: x
+    ❤:
+        name: red_heart
+        aliases: heart
+    ⭐:
+        name: star
+    ⏏:
+        name: eject_button
+        aliases: eject_symbol
+    ⏩:
+        name: fast-forward_button
+        aliases: fast_forward
+    ⏪:
+        name: fast_reverse_button
+        aliases: rewind
+    ⏭:
+        name: next_track_button
+        aliases: black_right__pointing_double_triangle_with_vertical_bar
+    ⏮:
+        name: last_track_button
+        aliases: black_left__pointing_double_triangle_with_vertical_bar
+    ⏯:
+        name: play_or_pause_button
+        aliases: black_right__pointing_triangle_with_double_vertical_bar
+    ⏸:
+        name: pause_button
+        aliases: double_vertical_bar
+    ⏹:
+        name: stop_button
+        aliases: black_square_for_stop
+    ⏺:
+        name: record_button
+        aliases: black_circle_for_record
+    ▶:
+        name: play_button
+        aliases: arrow_forward
+    ◀:
+        name: reverse_button
+        aliases: arrow_backward
+    ⚓:
+        name: anchor
+    ☺:
+        name: smiling_face
+        aliases: relaxed
+    ☹:
+        name: frowning_face
+        aliases: white_frowning_face
+    ✉:
+        name: envelope
+        aliases: email
+    ☂:
+        name: umbrella
+    ☔:
+        name: umbrella_with_rain_drops
+    ☄:
+        name: comet
+    ⛄:
+        name: snowman_without_snow
+    ☃:
+        name: snowman
+    ⌛:
+        name: hourglass_done
+        aliases: hourglass
+    ⌚:
+        name: watch
+    ❣:
+        name: heart_exclamation
+        aliases: heavy_heart_exclamation_mark_ornament
+    ⛈:
+        name: cloud_with_lightning_and_rain
+        aliases: thunder_cloud_and_rain
+    ↔:
+        name: left-right_arrow
+        aliases: left_right_arrow
+    ⚠:
+        name: warning
+    Ⓜ:
+        name: circled_M
+        aliases: m
+    ☯:
+        name: yin_yang
+    ☑:
+        name: check_box_with_check
+        aliases: ballot_box_with_check

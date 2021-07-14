@@ -1,6 +1,5 @@
 package com.github.remynfv.emojitab
 
-import com.comphenix.protocol.ProtocolManager
 import com.github.remynfv.emojitab.commands.TestCommand
 import com.github.remynfv.emojitab.utils.Messager
 import org.bukkit.configuration.InvalidConfigurationException
@@ -13,17 +12,28 @@ import java.io.IOException
 
 class EmojiTab : JavaPlugin()
 {
-    private lateinit var protocolManager: ProtocolManager
     private lateinit var emojisConfig: FileConfiguration
+
+    lateinit var emojifier: Emojifier
 
     override fun onEnable()
     {
         // Plugin startup logic
         Messager.send("Loaded!")
 
+        //Save Configs
+        saveDefaultConfig()
+        createEmojiListConfig()
+
+        //Initialize emoji list
+        emojifier = Emojifier(this)
+        emojifier.loadEmojisFromConfig()
+
+        //Register commands
         getCommand("test")!!.setExecutor(TestCommand(this))
 
-        createEmojiListConfig()
+        //Register events
+        server.pluginManager.registerEvents(Events(this), this)
     }
 
     override fun onDisable()
@@ -31,20 +41,25 @@ class EmojiTab : JavaPlugin()
         // Plugin shutdown logic
     }
 
+    //Get the FileConfiguration for the emoji list
     fun getEmojisConfig(): FileConfiguration
     {
         return this.emojisConfig
     }
 
+    //Load emojis.yml into emojisConfig
     private fun createEmojiListConfig()
     {
-        val emojisConfigFile = File(getDataFolder(), "emojis.yml")
+        val emojisConfigFile = File(dataFolder, "emojis.yml")
+
+        //Create emojis.yml if it doesn't exist yet.
         if (!emojisConfigFile.exists())
         {
-            emojisConfigFile.getParentFile().mkdirs()
+            emojisConfigFile.parentFile.mkdirs()
             saveResource("emojis.yml", false)
         }
 
+        //Load 'em in and hope it doesn't break
         emojisConfig = YamlConfiguration()
         try
         {

@@ -4,6 +4,7 @@ import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.TestCommand
 import com.github.remynfv.emojitab.utils.Messager
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.configuration.InvalidConfigurationException
 import org.bukkit.configuration.file.FileConfiguration
@@ -64,14 +65,15 @@ class EmojiTab : JavaPlugin()
         //TODO /emoji
         //TODO /emoji reload
         //TODO /emoji toggle
-        //TODO Custom skin uuid in config
 
         //Register events
         server.pluginManager.registerEvents(Events(this), this)
 
         //Load emojis for any players who are online already
         for (player in Bukkit.getOnlinePlayers())
+        {
             sendEmojiPackets(player)
+        }
     }
 
     private fun generateEmojiPackets()
@@ -85,8 +87,6 @@ class EmojiTab : JavaPlugin()
         val info = ArrayList<PlayerInfoData>()
         for (shortcode in emojifier.emojiMap.keys)
         {
-
-
             val shortcode2 = shortcode.take(16)
             val randomUUID = UUID.randomUUID()
             val gameProfile = WrappedGameProfile(randomUUID, shortcode2)
@@ -103,9 +103,39 @@ class EmojiTab : JavaPlugin()
         removeEmojisPacket.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER     //Does this work?
     }
 
+    fun updateVisiblePlayers(player: Player)
+    {
+        val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
+        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
+
+        val info = ArrayList<PlayerInfoData>()
+
+        var i = 0
+        for (p in Bukkit.getOnlinePlayers())
+        {
+            if (player.canSee(p))
+            {
+                val gameProfile = WrappedGameProfile(p.uniqueId, " ${p.name}")
+
+                val originalProperties = WrappedGameProfile.fromPlayer(p).properties
+                gameProfile.properties.putAll(originalProperties)
+
+                val json = GsonComponentSerializer.gson().serialize(p.displayName())
+                info.add(PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json)))
+
+                i++
+            }
+        }
+
+        updateDisplayNamesPacket.data = info
+
+        updateDisplayNamesPacket.sendPacket(player)
+    }
+
     fun sendEmojiPackets(player: Player)
     {
         addEmojisPacket.sendPacket(player)
+        updateVisiblePlayers(player)
     }
 
     fun sendRemoveEmojiPackets(player: Player)

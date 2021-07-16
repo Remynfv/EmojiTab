@@ -4,6 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.scheduler.BukkitRunnable
 
 
 class Events(private val plugin: EmojiTab) : Listener
@@ -23,6 +24,14 @@ class Events(private val plugin: EmojiTab) : Listener
     {
         val player = event.player
 
-        plugin.sendEmojiPackets(player)
+        object : BukkitRunnable()
+        {
+            override fun run()
+            {
+                //The emojis don't require a delay, but the player list does if you want it to include yourself
+                plugin.sendEmojiPackets(player)
+
+            }
+        }.runTaskLater(plugin, 1)
     }
 }

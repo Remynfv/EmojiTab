@@ -4,8 +4,10 @@ import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.EmojiCommand
 import com.github.remynfv.emojitab.commands.TestCommand
+import com.github.remynfv.emojitab.utils.Configs
 import com.github.remynfv.emojitab.utils.Messager
 import com.github.remynfv.emojitab.utils.VanishAPI
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.Bukkit
 import org.bukkit.configuration.InvalidConfigurationException
@@ -134,7 +136,22 @@ class EmojiTab : JavaPlugin()
                     val originalProperties = WrappedGameProfile.fromPlayer(p).properties
                     gameProfile.properties.putAll(originalProperties)
 
-                    val json = GsonComponentSerializer.gson().serialize(p.displayName())
+                    //Properly render vanilla scoreboard teams
+                    val team = player.scoreboard.getEntryTeam(p.name)
+                    lateinit var nameWithTeam: Component
+                    if (team != null)
+                    {
+                        val prefix = team.prefix()
+                        val color = team.color()
+                        val suffix = team.suffix()
+                        nameWithTeam = prefix.append(p.playerListName().color(color)).append(suffix)
+                    }
+                    else
+                    {
+                        nameWithTeam = p.displayName()
+                    }
+
+                    val json = GsonComponentSerializer.gson().serialize(nameWithTeam)
                     info.add(PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json)))
 
                 }

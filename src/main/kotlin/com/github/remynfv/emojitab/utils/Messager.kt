@@ -30,6 +30,11 @@ object Messager
         send("§c" + warning, sender)
     }
 
+    fun missingPermissions(permission: String, sender: CommandSender)
+    {
+        warn("Missing permissions: $permission", sender)
+    }
+
     //Broadcast a message publicly in server chat
     fun broadcast(message: String)
     {

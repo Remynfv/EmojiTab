@@ -1,4 +1,4 @@
-package com.github.remynfv.emojitab
+package com.github.remynfv.emojitab.utils
 
 //TODO Possibly a way to automatically sync these with config.yml?
 object Configs

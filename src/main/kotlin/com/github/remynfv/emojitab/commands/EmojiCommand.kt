@@ -2,6 +2,7 @@ package com.github.remynfv.emojitab.commands
 
 import com.github.remynfv.emojitab.EmojiTab
 import com.github.remynfv.emojitab.utils.Messager
+import com.github.remynfv.emojitab.utils.Permissions
 import com.github.remynfv.emojitab.utils.Settings
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
@@ -9,6 +10,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
+import org.bukkit.permissions.Permission
 
 val subcommands = listOf("reload", "toggle").toMutableList()
 
@@ -24,6 +26,11 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         //emoji reload
         fun reload()
         {
+            if (!sender.hasPermission(Permissions.RELOAD))
+            {
+                Messager.missingPermissions(Permissions.RELOAD, sender)
+                return
+            }
             plugin.reloadConfigs()
             for (player in Bukkit.getOnlinePlayers())
             {
@@ -38,19 +45,34 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         //emoji toggle <player>
         fun toggle()
         {
-            val player: Player? = if (args.size <= 1 && sender is Player)
-                sender
+            val player: Player?
+
+            if (args.size <= 1 && sender is Player)
+            {
+                if (sender.hasPermission(Permissions.TOGGLE_SELF))
+                    player = sender
+                else
+                {
+                    Messager.missingPermissions(Permissions.TOGGLE_SELF, sender)
+                    return
+                }
+            }
             else
-                Bukkit.getPlayer(args[1])
+            {
+                if (sender.hasPermission(Permissions.TOGGLE_OTHERS))
+                    player = Bukkit.getPlayer(args[1])
+                else
+                {
+                    Messager.missingPermissions(Permissions.TOGGLE_OTHERS, sender)
+                    return
+                }
+            }
 
             if (player == null)
             {
                 showUsage()
                 return
             }
-
-
-
 
             val emojisOff = !Settings.getEmojiDisabled(player) //Toggle
 

@@ -1,9 +1,16 @@
 package com.github.remynfv.emojitab
 
+import com.comphenix.packetwrapper.WrapperPlayServerNamedEntitySpawn
 import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
+import com.comphenix.protocol.PacketType
+import com.comphenix.protocol.ProtocolLibrary
+import com.comphenix.protocol.ProtocolManager
+import com.comphenix.protocol.events.ListenerPriority
+import com.comphenix.protocol.events.PacketAdapter
+import com.comphenix.protocol.events.PacketEvent
+import com.comphenix.protocol.events.ScheduledPacket
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.EmojiCommand
-import com.github.remynfv.emojitab.commands.TestCommand
 import com.github.remynfv.emojitab.utils.Configs
 import com.github.remynfv.emojitab.utils.Messager
 import com.github.remynfv.emojitab.utils.VanishAPI
@@ -14,10 +21,15 @@ import org.bukkit.configuration.InvalidConfigurationException
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.metadata.FixedMetadataValue
+import org.bukkit.metadata.MetadataValue
+import org.bukkit.metadata.MetadataValueAdapter
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitRunnable
 import java.io.File
 import java.io.IOException
 import java.util.*
+
 
 private const val displayName: String = "" //Any character that is invisible
 
@@ -44,16 +56,22 @@ class EmojiTab : JavaPlugin()
     private lateinit var removeEmojisPacket: WrapperPlayServerPlayerInfo
     private lateinit var addEmojisPacket: WrapperPlayServerPlayerInfo
 
+    //Declare ProtocolManager
+    private lateinit var protocolManager: ProtocolManager
 
     /*
     Bugs list:
-    TODO Fix name updates in tab
-    Display names only show up if you relog after turning emoji off
+    Make remove player packets also remove tab complete version of player
+    Undo some code changes and make tab-complete player gray again
+    Clean up spaghetti
      */
     override fun onEnable()
     {
         // Plugin startup logic
         Messager.send("Loaded!")
+
+        //Init ProtocolManager
+        protocolManager = ProtocolLibrary.getProtocolManager();
 
         //Save Configs
         saveDefaultConfig()
@@ -67,17 +85,54 @@ class EmojiTab : JavaPlugin()
         generateEmojiPackets()
 
         //Register commands
-        getCommand("test")!!.setExecutor(TestCommand(this))
         getCommand("emoji")!!.setExecutor(EmojiCommand(this))
 
         //Register events
         server.pluginManager.registerEvents(Events(this), this)
+        registerPacketListener()
 
         //Load emojis for any players who are online already
         for (player in Bukkit.getOnlinePlayers())
         {
             sendEmojiPackets(player)
         }
+    }
+
+    private fun registerPacketListener()
+    {
+        protocolManager.addPacketListener(
+            object : PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.NAMED_ENTITY_SPAWN)
+            {
+                override fun onPacketSending(event: PacketEvent)
+                {
+                    val wrapper = WrapperPlayServerNamedEntitySpawn(event.packet)
+                    Messager.broadcast(wrapper.getEntity(event).uniqueId.toString())
+
+                    Messager.broadcast(wrapper.getEntity(event.player.world).hasMetadata("first_run?").toString())
+
+                    //Escape from infinite loops
+                    if (wrapper.getEntity(event.player.world).hasMetadata("first_run?"))
+                    {
+                        wrapper.getEntity(event.player.world).removeMetadata("first_run?", plugin)
+                        return
+                    }
+
+                    event.isCancelled = true
+
+                    val reverseUUID = UUID.fromString(wrapper.playerUUID.toString().reversed())
+                    wrapper.playerUUID = reverseUUID
+                    object : BukkitRunnable()
+                    {
+                        override fun run()
+                        {
+                            val meta = FixedMetadataValue(plugin, true)
+                            wrapper.getEntity(event.player.world).setMetadata("first_run?", meta)
+                            wrapper.sendPacket(event.player)
+                        }
+                    }.runTaskLater(plugin, 1)
+                }
+            }
+        )
     }
 
     fun generateEmojiPackets()
@@ -121,38 +176,44 @@ class EmojiTab : JavaPlugin()
 
             if (player.canSee(p))
             {
+                //Properly render vanilla scoreboard teams
+                val team = player.scoreboard.getEntryTeam(p.name)
+                lateinit var nameWithTeam: Component
+                if (team != null)
+                {
+                    val prefix = team.prefix()
+                    val color = team.color()
+                    val suffix = team.suffix()
+                    nameWithTeam = prefix.append(p.playerListName().color(color)).append(suffix)
+                }
+                else
+                {
+                    nameWithTeam = p.playerListName()
+                }
+
+                val json = GsonComponentSerializer.gson().serialize(nameWithTeam)
                 run {
-                    val gameProfile = WrappedGameProfile(p.uniqueId, " $i") //This gets the real UUID so the latency will update TODO Confirm that latency updates
+                    //Somewhat strange hack to get a second UUID for a player.
+                    val uuid = p.uniqueId
+
+                    val gameProfile = WrappedGameProfile(uuid, " $i") //This gets the real UUID so the latency will update TODO Confirm that latency updates
 
                     val originalProperties = WrappedGameProfile.fromPlayer(p).properties
                     gameProfile.properties.putAll(originalProperties)
 
-                    //Properly render vanilla scoreboard teams
-                    val team = player.scoreboard.getEntryTeam(p.name)
-                    lateinit var nameWithTeam: Component
-                    if (team != null)
-                    {
-                        val prefix = team.prefix()
-                        val color = team.color()
-                        val suffix = team.suffix()
-                        nameWithTeam = prefix.append(p.playerListName().color(color)).append(suffix)
-                    }
-                    else
-                    {
-                        nameWithTeam = p.displayName()
-                    }
 
-                    val json = GsonComponentSerializer.gson().serialize(nameWithTeam)
                     info.add(PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json)))
 
                 }
                 run {
-                    val uuidBackwards = UUID.fromString(player.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
+                    val uuidBackwards = UUID.fromString(p.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
+
                     val gameProfile = WrappedGameProfile(uuidBackwards, p.name)
 
-                    gameProfile.properties.put("textures", defaultTexturesProperty)
+                    val originalProperties = WrappedGameProfile.fromPlayer(p).properties
+                    gameProfile.properties.putAll(originalProperties)
 
-                    info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName)))
+                    info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromJson(json)))
                 }
 
                 i++

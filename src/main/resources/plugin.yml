@@ -4,13 +4,12 @@ main: com.github.remynfv.emojitab.EmojiTab
 api-version: 1.17
 authors: [ Legitimoose ]
 description: A plugin for tab completing emojis!
-website: youtube.com/legitimoose
+website: https://youtube.com/legitimoose
 depend: [ProtocolLib]
 commands:
-  test:
-    description: Test command *world explodes*
-    usage: /test
   emoji:
     #TODO Write description
+    aliases:
+      - emojis
     description: /emoji
     usage: /emoji [list,reload,toggle]

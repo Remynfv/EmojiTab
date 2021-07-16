@@ -8,6 +8,4 @@ object Configs
     const val WRAPPING_CHARACTER = "emoji-wrapping"
     const val TEXTURE = "custom-texture-data"
     const val SIGNATURE = "custom-texture-signature"
-
-
 }

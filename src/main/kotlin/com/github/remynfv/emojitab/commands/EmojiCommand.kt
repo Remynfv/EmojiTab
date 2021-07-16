@@ -105,6 +105,10 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
                 "reload" -> reload()
                 "toggle" -> toggle()
                 "list" -> showList(sender)
+                "test" -> {
+                    //TODO REMOVE
+                    (sender as Player).playerListName(Component.text("New name!!!"))
+                }
                 else ->
                 {
                     showUsage()

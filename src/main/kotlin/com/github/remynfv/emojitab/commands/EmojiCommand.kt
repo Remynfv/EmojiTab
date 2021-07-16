@@ -4,15 +4,18 @@ import com.github.remynfv.emojitab.EmojiTab
 import com.github.remynfv.emojitab.utils.Messager
 import com.github.remynfv.emojitab.utils.Permissions
 import com.github.remynfv.emojitab.utils.Settings
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
-import org.bukkit.permissions.Permission
 
-val subcommands = listOf("reload", "toggle").toMutableList()
+val subcommands = listOf("reload", "toggle", "list").toMutableList()
 
 class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
 {
@@ -93,7 +96,7 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         }
 
         if (args.isEmpty())
-            showUsage()
+            showList(sender)
         else
         {
             //Map all them args
@@ -101,6 +104,7 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
             {
                 "reload" -> reload()
                 "toggle" -> toggle()
+                "list" -> showList(sender)
                 else ->
                 {
                     showUsage()
@@ -108,6 +112,41 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
             }
         }
         return true
+    }
+
+    fun showList(sender: CommandSender)
+    {
+        //Check permissions
+        if (!sender.hasPermission(Permissions.LIST) && plugin.usePermissions)
+        {
+            Messager.missingPermissions(Permissions.LIST, sender)
+            return
+        }
+
+        //Create empty message
+        var emojiList = Component.empty()
+
+        //Iterate over list of emojis
+        for (entry: MutableMap.MutableEntry<String, String> in plugin.emojifier.emojiMap)
+        {
+            //Create a slick hoverevent
+            val hover = HoverEvent.showText(
+                Component.text(entry.value).append(
+                Component.text(" " + entry.key).color(NamedTextColor.AQUA)).append(
+                Component.text(" /emoji").color(NamedTextColor.LIGHT_PURPLE)))
+
+            //Create the clickevent
+            val clickEvent = ClickEvent.suggestCommand(entry.key)
+
+            //Create the whole component
+            val currentEmoji = Component.text(entry.value).hoverEvent(hover).clickEvent(clickEvent)
+
+            //Add the current emoji component to the list
+            emojiList = emojiList.append(Component.text(" ")).append(currentEmoji)
+        }
+
+        //Send the list
+        sender.sendMessage(emojiList)
     }
 
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): MutableList<String>?

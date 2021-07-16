@@ -13,4 +13,4 @@ commands:
   emoji:
     #TODO Write description
     description: /emoji
-    usage: /emoji [reload,toggle]
+    usage: /emoji [list,reload,toggle]

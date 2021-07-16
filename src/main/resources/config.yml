@@ -4,8 +4,9 @@
 #Defaults to semicolon ":"
 emoji-wrapping: ":"
 
-#TODO add permissions
+#Require permission emoji.use to be able to use emojis.
 use-permissions: false
+individual-permissions: false #TODO Require emoji.use.[name] to use emojis
 
 #Whether to spam the server log with every emoji's data on startup
 verbose: false

@@ -2,17 +2,20 @@ package com.github.remynfv.emojitab.commands
 
 import com.github.remynfv.emojitab.EmojiTab
 import com.github.remynfv.emojitab.utils.Messager
+import com.github.remynfv.emojitab.utils.Settings
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
-import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
+import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
-import org.bukkit.metadata.MetadataValue
-import org.bukkit.metadata.MetadataValueAdapter
 
-class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
+val subcommands = listOf("reload", "toggle").toMutableList()
+
+class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
 {
+
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean
     {
         //Generic error
@@ -25,6 +28,7 @@ class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
             for (player in Bukkit.getOnlinePlayers())
             {
                 plugin.sendRemoveEmojiPackets(player)
+                plugin.generateEmojiPackets()
                 plugin.sendEmojiPackets(player)
             }
 
@@ -34,8 +38,7 @@ class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
         //emoji toggle <player>
         fun toggle()
         {
-            val player: Player?
-            player = if (args.size <= 1 && sender is Player)
+            val player: Player? = if (args.size <= 1 && sender is Player)
                 sender
             else
                 Bukkit.getPlayer(args[1])
@@ -46,20 +49,10 @@ class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
                 return
             }
 
-            //Get metadata to find out if emojis are already toggled
-            var emojisOff: Boolean? = null
-            for (meta in player.getMetadata("emoji_off"))
-            {
-                if (meta.asBoolean())
-                {
-                    emojisOff = meta.asBoolean()
-                    break
-                }
-            }
-            if (emojisOff == null)
-                emojisOff = false
 
-            emojisOff = !emojisOff //Toggle
+
+
+            val emojisOff = !Settings.getEmojiDisabled(player) //Toggle
 
             val value = FixedMetadataValue(plugin, emojisOff)
             player.setMetadata("emoji_off", value) //Set the metadata
@@ -77,7 +70,7 @@ class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
             }
         }
 
-        if (args.size < 1)
+        if (args.isEmpty())
             showUsage()
         else
         {
@@ -95,11 +88,27 @@ class EmojiCommand(val plugin: EmojiTab) : CommandExecutor
         return true
     }
 
-    private fun reload()
+    override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): MutableList<String>?
     {
-
-
+        when (args.size)
+        {
+            1 -> {
+                return subcommands
+            }
+            2 -> {
+                when (args[0].lowercase())
+                {
+                    "toggle" -> {
+                        val players = mutableListOf<String>()
+                        for (player in Bukkit.getOnlinePlayers())
+                            if ((sender as Player).canSee(player))
+                                players.add(player.name)
+                        return players
+                    }
+                    //Room for more subcommands
+                }
+            }
+        }
+        return null
     }
-
-
 }

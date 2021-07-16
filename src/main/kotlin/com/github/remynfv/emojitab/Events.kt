@@ -1,5 +1,6 @@
 package com.github.remynfv.emojitab
 
+import com.github.remynfv.emojitab.utils.Settings
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -24,6 +25,8 @@ class Events(private val plugin: EmojiTab) : Listener
     fun onPlayerJoin(event: PlayerJoinEvent)
     {
         val player = event.player
+        if (Settings.getEmojiDisabled(player))
+            return
 
         object : BukkitRunnable()
         {

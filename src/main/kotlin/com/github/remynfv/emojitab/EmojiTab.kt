@@ -51,6 +51,7 @@ class EmojiTab : JavaPlugin()
 
     Bugs list:
     TODO Fix name updates in tab
+    Display names only show up if you relog after turning emoji off
      */
     override fun onEnable()
     {
@@ -86,7 +87,7 @@ class EmojiTab : JavaPlugin()
         }
     }
 
-    private fun generateEmojiPackets()
+    fun generateEmojiPackets()
     {
         //Create a list of players of size = emojiMap.keys.size
         addEmojisPacket = WrapperPlayServerPlayerInfo()

@@ -14,14 +14,18 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
+private const val displayName: String = "" //Any character that is invisible
 
 class EmojiTab : JavaPlugin()
 {
+
     //From config.yml
     var usePermissions: Boolean = true
     var verbose: Boolean = false
     var wrappingCharacter: String = ""
-    var uuid: UUID = UUID.randomUUID()
+    //Dim gray, courtesy of someone off mineskin.org (https://mineskin.org/14b3cfc390dc440282195d8a74b742f4)
+    var texture: String = "ewogICJ0aW1lc3RhbXAiIDogMTYyMTQxMTE5MDkyMywKICAicHJvZmlsZUlkIiA6ICJmZDQ3Y2I4YjgzNjQ0YmY3YWIyYmUxODZkYjI1ZmMwZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDVUNGTDEyIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ4NDYxNmVhNDI0OTk1NzI4OGE5Y2Y4ZTNhM2E0ZjVjZDU0NDYxNjk1ZTczMmM5ZWViOTA4NDBmZDRkYzg3YjQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+    var signature: String = "vAk/+xJkgEYANJq2FxjfX4xT5Lo+z1+YNnvWPUgLnpwgj3Vq1nqKZ24y0mHbsLROE3JCnOW1vJObFyNRBktInFXX5RhAv8yis/TSyFFhR3rjnC8ZEMSlM0gyy2K9nJxjY+jDSVBNBaBmWs1JbhPWl2zN/eaMEMivAwZmBLqhTLIV/o4IAUAIPDkxdEw5MGtp81wEot1YSMc1PkGYANx7VTGUy2eCe4AhjDgUrWLkGPkSWeCowU1xQzT5DeWw5V6sylRWXR7DTkzonteRA5jO4gXrXXt5CdytGbz8SOT9V2xnhUPbnRZOgeRKwwHphAJ4N+g2+C5BGxrfSlnmj8YZKAlM17YEK2ej1eClxmmxIW/2bjZnCJR0U7f750evnXb6ZcjIQ+P400RpSCUo79L9cbvz3rHU36IcHKl3GmGG9uyr15C6DVa5WGj5A19fmzIMyRG5e5GTH6NPVC+yK5R0M36in88iP1HQFY9CdPn9NixrdRcCcXPcOcKFsNXE6la+UMhSlsXX+FS5zGtMvTedn5fPglP0DWur9Iz4Z/Bk5ZoZ93NdpF/h63rLZG9xYBs+gf8UEESPRykZSB2wIRO4039s3TC4g8i/lUBn4Zt6IpUiXip9rK7ihKdy3bVX8YywxmCL9oqhfQK0jnFk1dPDBCs/QDMCYnP4fLkLEqPZRrI="
 
     //This is emojis.yml
     private lateinit var emojisConfig: FileConfiguration
@@ -86,9 +90,9 @@ class EmojiTab : JavaPlugin()
             val shortcode2 = shortcode.take(16)
             val randomUUID = UUID.randomUUID()
             val gameProfile = WrappedGameProfile(randomUUID, shortcode2)
-            val signature = WrappedSignedProperty("textures", "ewogICJ0aW1lc3RhbXAiIDogMTYyNjI4NTI5NjcyMywKICAicHJvZmlsZUlkIiA6ICJjZWM0M2ZiYTZkZTQ0NmQ0OTZkZjdjNmI4NGQyMGU1YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJMb2dib2ciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODZmYzQ2MDQ5NDEzMDYzMzcyOWQ3NmU3ODkxYWUyODQwYjhhM2FmNGUxODMwZDVhYzYyMzc5NzQ1OGIxYTBkYyIKICAgIH0sCiAgICAiQ0FQRSIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdkZmVhMTZkYzgzYzk3ZGYwMWExMmZhYmJkMTIxNjM1OWMwY2QwZWE0MmY5OTk5YjZlOTdjNTg0OTYzZTk4MCIKICAgIH0KICB9Cn0=", "tnigNGwKGoFXQdPyFjZaIebt65N0h32efVJCY/m1WFE4EmDYRB6pw3gyFB9sVUn5MlS9q4QrdEe7uNF9uSyvMtEfkAXl7lQENmGCgNv8A3igyOaMIhPyHQcJ67Tnw3UF5cm8xnJhJ14NSpNrdsL6aiKSIeuwtL59IiUQmUBYKKoNhW9Qpp6JWV9HBGEBdE/OuWqcMwliTY4L7L2WxaMoCHHfy6rApFvR0ePWXfF1Oi8ycqrXvb/5XzIYBLyO/vYhNuABDQCihCpjVgkZtPTmNB10QuG4bEqQ+Rd3C4PeGyuMeUcwTCD+pyEmh43ygkgzzHneltk8Q/oX92vBfc8z50+d2CMbxEmcidxgAN7zu2fWoRsj2zVLoECwRoEDJt50rEV3UG6hyVvw94Jy2d0fx45lhoRbpXuV6NAqvUL95KmzRBAKoC4JAYTuymFpOhoMKftlJTZm7HY32MKHk8UPDbfbSKhXPy5mKbfvVcCwDJjjS486D8MtvGUv3neFPd1s8VJHtbgvHynAoonojT5zp5pDfx/pYIEe+VP3KVSmeinMRf2Kuv1bXqFW392hc6fpHrGgz2d6ggcS8LrE4kInb0BmaCuzeZ2YDx9jXh9ACrM/J51JHvCDOHfxF8rGdN4+3I6sflRqJii/gjTaHl9F8MxEjeB0UzHo60O9DJA3kgI=")
+            val signature = WrappedSignedProperty("textures", texture,signature)
             gameProfile.properties.put("textures", signature)
-            info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText("")))
+            info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName)))
 
         }
         addEmojisPacket.data = info
@@ -122,6 +126,15 @@ class EmojiTab : JavaPlugin()
         config.getBoolean(Configs.VERBOSE_BOOT).let { verbose = it }
         config.getBoolean(Configs.USE_PERMISSIONS).let { usePermissions = it }
         config.getString(Configs.WRAPPING_CHARACTER)?.let { wrappingCharacter = it }
+
+        //Load custom skins
+        val texture = config.getString(Configs.TEXTURE)
+        val signature = config.getString(Configs.SIGNATURE)
+        if (!texture.isNullOrBlank() && !signature.isNullOrBlank())
+        {
+            this.texture = texture
+            this.signature = signature
+        }
 
         //Load emojis into hashmap
         emojifier.loadEmojisFromConfig()

@@ -4,8 +4,15 @@
 #Defaults to semicolon ":"
 emoji-wrapping: ":"
 
-#TODO
+#TODO add permissions
 use-permissions: false
 
 #Whether to spam the server log with every emoji's data on startup
 verbose: false
+
+#Use these if you want to change the skin in the tablist from the default gray.
+#Any skin will work, but hat layers will not be displayed.
+#Go to mineskin.org and choose a skin.
+#Copy and paste "Texture Data" and "Texture Signature" here.
+custom-texture-data:
+custom-texture-signature:

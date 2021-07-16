@@ -10,3 +10,7 @@ commands:
   test:
     description: Test command *world explodes*
     usage: /test
+  emoji:
+    #TODO Write description
+    description: /emoji
+    usage: /emoji [reload,toggle]

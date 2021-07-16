@@ -2,6 +2,7 @@ package com.github.remynfv.emojitab
 
 import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
 import com.comphenix.protocol.wrappers.*
+import com.github.remynfv.emojitab.commands.EmojiCommand
 import com.github.remynfv.emojitab.commands.TestCommand
 import com.github.remynfv.emojitab.utils.Messager
 import com.github.remynfv.emojitab.utils.VanishAPI
@@ -47,6 +48,9 @@ class EmojiTab : JavaPlugin()
     Features list:
     TODO Individual permissions
     TODO Main config.yml
+
+    Bugs list:
+    TODO Fix name updates in tab
      */
     override fun onEnable()
     {
@@ -66,6 +70,8 @@ class EmojiTab : JavaPlugin()
 
         //Register commands
         getCommand("test")!!.setExecutor(TestCommand(this))
+        getCommand("emoji")!!.setExecutor(EmojiCommand(this))
+
         //TODO /emoji
         //TODO /emoji reload
         //TODO /emoji toggle
@@ -122,7 +128,7 @@ class EmojiTab : JavaPlugin()
             if (player.canSee(p))
             {
                 run {
-                    val gameProfile = WrappedGameProfile(p.uniqueId, " $i") //This should maybe be the other way around and have a random UUID
+                    val gameProfile = WrappedGameProfile(p.uniqueId, " $i") //This gets the real UUID so the latency will update TODO Confirm that latency updates
 
                     val originalProperties = WrappedGameProfile.fromPlayer(p).properties
                     gameProfile.properties.putAll(originalProperties)
@@ -132,12 +138,12 @@ class EmojiTab : JavaPlugin()
 
                 }
                 run {
-                    val gameProfile = WrappedGameProfile(UUID.randomUUID(), p.name) //TODO Random UUID gets lost after this and needs to disappear at some point!
+                    val uuidBackwards = UUID.fromString(player.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
+                    val gameProfile = WrappedGameProfile(uuidBackwards, p.name)
 
                     gameProfile.properties.put("textures", defaultTexturesProperty)
 
                     info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName)))
-
                 }
 
                 i++
@@ -149,6 +155,22 @@ class EmojiTab : JavaPlugin()
         updateDisplayNamesPacket.sendPacket(player)
     }
 
+    //Remove the fake player with the reversed uuid of player
+    fun removeFlippedUUIDFromTab(player: Player): WrapperPlayServerPlayerInfo
+    {
+        val uuidBackwards = UUID.fromString(player.uniqueId.toString().reversed()) //This is colosally scuffed and does nothing right now
+
+        val packet = WrapperPlayServerPlayerInfo()
+        packet.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
+
+        val gameProfile = WrappedGameProfile(uuidBackwards, player.name) //TODO Random UUID gets lost after this and needs to disappear at some point!
+
+        val info = PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName))
+        packet.data = List(1) { info }
+
+        return packet
+    }
+
     fun sendEmojiPackets(player: Player)
     {
         addEmojisPacket.sendPacket(player)
@@ -158,6 +180,8 @@ class EmojiTab : JavaPlugin()
     fun sendRemoveEmojiPackets(player: Player)
     {
         removeEmojisPacket.sendPacket(player)
+        for (p in Bukkit.getOnlinePlayers())
+            removeFlippedUUIDFromTab(p).sendPacket(player)
     }
 
     override fun onDisable()

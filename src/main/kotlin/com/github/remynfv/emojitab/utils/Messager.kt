@@ -2,6 +2,7 @@ package com.github.remynfv.emojitab.utils
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 
 object Messager
 {
@@ -14,9 +15,19 @@ object Messager
         Bukkit.getConsoleSender().sendMessage(PREFIX + message)
     }
 
+    fun send(message: String, sender: CommandSender)
+    {
+        sender.sendMessage(PREFIX + message)
+    }
+
     fun warn(warning: String)
     {
         Bukkit.getConsoleSender().sendMessage(PREFIX + WARNING_PREFIX + warning)
+    }
+
+    fun warn(warning: String, sender: CommandSender)
+    {
+        send("§c" + warning, sender)
     }
 
     //Broadcast a message publicly in server chat

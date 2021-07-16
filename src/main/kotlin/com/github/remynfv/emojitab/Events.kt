@@ -4,6 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.scheduler.BukkitRunnable
 
 
@@ -33,5 +34,11 @@ class Events(private val plugin: EmojiTab) : Listener
 
             }
         }.runTaskLater(plugin, 1)
+    }
+
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent)
+    {
+        plugin.removeFlippedUUIDFromTab(event.player).broadcastPacket()
     }
 }

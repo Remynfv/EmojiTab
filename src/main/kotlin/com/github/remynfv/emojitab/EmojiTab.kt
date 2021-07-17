@@ -19,6 +19,7 @@ import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitRunnable
 import org.jetbrains.annotations.NotNull
 import java.io.File
 import java.io.IOException
@@ -120,13 +121,22 @@ class EmojiTab : JavaPlugin()
                     val info = PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json))
                     playerInfoPacket.data = List(1) { info }
 
-                    Messager.broadcast("Removing player ${p.name} from tab.")
+                    Messager.send("${playerInfoPacket.action}ing ${p.name} to/from tab just for you.", player)
                     //Send packet.
                     playerInfoPacket.sendPacket(player)
 
 
+
                     //SCHEDULE JUST ADD player_info onto the event
 
+                    object : BukkitRunnable()
+                    {
+                        override fun run()
+                        {
+                            updatePlayerForPlayer(player, p)
+
+                        }
+                    }.runTaskLater(plugin, 1)
 //                  Commented becausee this doesn't seem to be working
 //                    var container = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO)
 //
@@ -186,47 +196,63 @@ class EmojiTab : JavaPlugin()
 
         val info = ArrayList<PlayerInfoData>()
 
-        var i = 0
         for (p in Bukkit.getOnlinePlayers())
         {
-            //TODO Test with vanish plugins, this may not be necessary
-            if (VanishAPI.isVanished(p)) //Generic vanish "API" support.
-                continue
+            val playerInfoData = getDataPlayerForPlayer(player, p) ?: continue
 
-            if (player.canSee(p))
-            {
-                val json = getPlayerNameForList(p)
-
-                run {
-                    //Somewhat strange hack to get a second UUID for a player.
-                    val uuid = p.uniqueId
-
-                    val gameProfile = WrappedGameProfile(uuid, " $i") //This gets the real UUID so the latency will update TODO Confirm that latency updates
-
-                    val originalProperties = WrappedGameProfile.fromPlayer(p).properties
-                    gameProfile.properties.putAll(originalProperties)
-
-                    info.add(PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json)))
-
-                }
-                run {
-                    val uuidBackwards = UUID.fromString(p.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
-
-                    val gameProfile = WrappedGameProfile(uuidBackwards, p.name)
-
-                    val originalProperties = WrappedGameProfile.fromPlayer(p).properties
-                    gameProfile.properties.putAll(originalProperties)
-
-                    info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromJson(json)))
-                }
-
-                i++
-            }
+            info.addAll(playerInfoData)
         }
 
         updateDisplayNamesPacket.data = info
 
         updateDisplayNamesPacket.sendPacket(player)
+    }
+
+    fun updatePlayerForPlayer(mainPlayer: Player, checkPlayer: Player)
+    {
+        //Create the packet
+        val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
+
+        //Assign values
+        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
+        updateDisplayNamesPacket.data = getDataPlayerForPlayer(mainPlayer, checkPlayer)
+
+        //Send it
+        updateDisplayNamesPacket.sendPacket(mainPlayer)
+    }
+
+    fun getDataPlayerForPlayer(mainPlayer: Player, checkPlayer: Player): List<PlayerInfoData>?
+    {
+        if (VanishAPI.isVanished(checkPlayer)) //Generic vanish "API" support.
+            return null
+
+        if (mainPlayer.canSee(checkPlayer))
+        {
+            val json = getPlayerNameForList(checkPlayer)
+            val uuid = checkPlayer.uniqueId
+
+            val gameProfile = WrappedGameProfile(uuid, " 0") //i can be 0 //This gets the real UUID so the latency will update
+
+            val originalProperties = WrappedGameProfile.fromPlayer(checkPlayer).properties
+            gameProfile.properties.putAll(originalProperties)
+
+            val output1 = PlayerInfoData(gameProfile, checkPlayer.ping, EnumWrappers.NativeGameMode.valueOf(checkPlayer.gameMode.name), WrappedChatComponent.fromJson(json))
+
+
+            //Somewhat strange hack to get a second UUID for a player.
+            val uuidBackwards = UUID.fromString(checkPlayer.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
+
+            //Create the gameprofile for tab completion
+            val gameProfileReverse = WrappedGameProfile(uuidBackwards, checkPlayer.name)
+            gameProfileReverse.properties.putAll(originalProperties)
+
+            val output2 =  PlayerInfoData(gameProfileReverse, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromJson(json))
+
+            val output = listOf<PlayerInfoData>(output1, output2)
+            return output
+        }
+
+        return null
     }
 
     //Used for rendering colors and teams in the tab list

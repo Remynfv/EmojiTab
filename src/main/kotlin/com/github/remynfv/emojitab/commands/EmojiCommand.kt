@@ -35,10 +35,9 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
                 return
             }
             plugin.reloadConfigs()
+            plugin.removeAllFakePlayers()
             for (player in Bukkit.getOnlinePlayers())
             {
-                plugin.sendRemoveEmojiPackets(player)
-                plugin.generateEmojiPackets()
                 plugin.sendEmojiPackets(player)
             }
 

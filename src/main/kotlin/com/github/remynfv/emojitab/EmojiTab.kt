@@ -8,9 +8,7 @@ import com.comphenix.protocol.ProtocolManager
 import com.comphenix.protocol.events.*
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.EmojiCommand
-import com.github.remynfv.emojitab.utils.Configs
-import com.github.remynfv.emojitab.utils.Messager
-import com.github.remynfv.emojitab.utils.VanishAPI
+import com.github.remynfv.emojitab.utils.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import org.bukkit.Bukkit
@@ -55,10 +53,7 @@ class EmojiTab : JavaPlugin()
     private lateinit var protocolManager: ProtocolManager
 
     /*
-    Bugs list:
-    Make remove player packets also remove tab complete version of player
-    Undo some code changes and make tab-complete player gray again
-    Clean up spaghetti
+    TODO Move player update functions into own class, declutter this class
      */
     override fun onEnable()
     {
@@ -292,8 +287,13 @@ class EmojiTab : JavaPlugin()
         return packet
     }
 
+    //Sends all necessary packets to player, including emojis and tab-complete fake players
     fun sendEmojiPackets(player: Player)
     {
+        //If player has emojis disabled don't send them the players OR the fakeplayers
+        if (Settings.getEmojiDisabled(player) || !(player.hasPermission(Permissions.USE) || !usePermissions))
+            return
+
         addEmojisPacket.sendPacket(player)
         updateVisiblePlayers(player)
     }
@@ -308,8 +308,14 @@ class EmojiTab : JavaPlugin()
     override fun onDisable()
     {
         // Plugin shutdown logic
+        removeAllFakePlayers() //Remove autocorrect bois for all players, to avoid clogging up the tab menu if unwanted
+    }
+
+    //Removes all fake players for server/config reloads
+    fun removeAllFakePlayers()
+    {
         for (player in Bukkit.getOnlinePlayers())
-            sendRemoveEmojiPackets(player)  //Remove autocorrect bois for all players, to avoid clogging up the tab menu if unwanted
+            sendRemoveEmojiPackets(player)
     }
 
     fun reloadConfigs()

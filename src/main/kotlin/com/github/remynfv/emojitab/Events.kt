@@ -31,9 +31,6 @@ class Events(private val plugin: EmojiTab) : Listener
     fun onPlayerJoin(event: PlayerJoinEvent)
     {
         val player = event.player
-        if (Settings.getEmojiDisabled(player) || !player.hasPermission(Permissions.USE) && plugin.usePermissions)
-            return
-
 
         //Delay things by 1 tick so they have time to properly load in
         object : BukkitRunnable()

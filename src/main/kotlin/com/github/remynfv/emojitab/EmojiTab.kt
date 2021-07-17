@@ -121,7 +121,6 @@ class EmojiTab : JavaPlugin()
                     val info = PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json))
                     playerInfoPacket.data = List(1) { info }
 
-                    Messager.send("${playerInfoPacket.action}ing ${p.name} to/from tab just for you.", player)
                     //Send packet.
                     playerInfoPacket.sendPacket(player)
 
@@ -137,28 +136,6 @@ class EmojiTab : JavaPlugin()
 
                         }
                     }.runTaskLater(plugin, 1)
-//                  Commented becausee this doesn't seem to be working
-//                    var container = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO)
-//
-//                    container.playerInfoAction.writeSafely(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER)
-//
-//                    val gameProfileNumber = WrappedGameProfile(uuid, " a")
-//
-//                    gameProfileNumber.properties.putAll(originalProperties)
-//
-//                    val infoNumbers = PlayerInfoData(gameProfileNumber, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json))
-//
-//                    container.playerInfoDataLists.writeSafely(0, List(0) {infoNumbers})
-//
-//                    Messager.broadcast("Adding player ${p.name} to tab.")
-//
-//                    //Send packet.
-//                    val scheduledPacket = ScheduledPacket(container, player, true)
-//                    event.schedule(scheduledPacket)
-
-
-
-
                 }
             }
         )

@@ -155,7 +155,7 @@ class EmojiTab : JavaPlugin()
         )
     }
 
-    fun generateEmojiPackets()
+    private fun generateEmojiPackets()
     {
         //Create a list of players of size = emojiMap.keys.size
         addEmojisPacket = WrapperPlayServerPlayerInfo()

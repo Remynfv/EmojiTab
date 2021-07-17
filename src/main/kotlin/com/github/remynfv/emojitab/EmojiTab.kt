@@ -5,10 +5,7 @@ import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
-import com.comphenix.protocol.events.ListenerPriority
-import com.comphenix.protocol.events.PacketAdapter
-import com.comphenix.protocol.events.PacketEvent
-import com.comphenix.protocol.events.ScheduledPacket
+import com.comphenix.protocol.events.*
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.EmojiCommand
 import com.github.remynfv.emojitab.utils.Configs
@@ -21,11 +18,8 @@ import org.bukkit.configuration.InvalidConfigurationException
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
-import org.bukkit.metadata.FixedMetadataValue
-import org.bukkit.metadata.MetadataValue
-import org.bukkit.metadata.MetadataValueAdapter
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scheduler.BukkitRunnable
+import org.jetbrains.annotations.NotNull
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -71,7 +65,7 @@ class EmojiTab : JavaPlugin()
         Messager.send("Loaded!")
 
         //Init ProtocolManager
-        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = ProtocolLibrary.getProtocolManager()
 
         //Save Configs
         saveDefaultConfig()
@@ -105,31 +99,56 @@ class EmojiTab : JavaPlugin()
             {
                 override fun onPacketSending(event: PacketEvent)
                 {
+                    val player = event.player
                     val wrapper = WrapperPlayServerNamedEntitySpawn(event.packet)
-                    Messager.broadcast(wrapper.getEntity(event).uniqueId.toString())
 
-                    Messager.broadcast(wrapper.getEntity(event.player.world).hasMetadata("first_run?").toString())
+                    //Send JUST REMOVE player_info packet here
+                    val playerInfoPacket = WrapperPlayServerPlayerInfo()
+                    playerInfoPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
 
-                    //Escape from infinite loops
-                    if (wrapper.getEntity(event.player.world).hasMetadata("first_run?"))
-                    {
-                        wrapper.getEntity(event.player.world).removeMetadata("first_run?", plugin)
-                        return
-                    }
+                    val p: Player = Bukkit.getPlayer(wrapper.playerUUID)!!
+                    val uuid = p.uniqueId
 
-                    event.isCancelled = true
+                    val gameProfile = WrappedGameProfile(uuid, p.name)
 
-                    val reverseUUID = UUID.fromString(wrapper.playerUUID.toString().reversed())
-                    wrapper.playerUUID = reverseUUID
-                    object : BukkitRunnable()
-                    {
-                        override fun run()
-                        {
-                            val meta = FixedMetadataValue(plugin, true)
-                            wrapper.getEntity(event.player.world).setMetadata("first_run?", meta)
-                            wrapper.sendPacket(event.player)
-                        }
-                    }.runTaskLater(plugin, 1)
+                    val originalProperties = WrappedGameProfile.fromPlayer(p).properties
+                    gameProfile.properties.putAll(originalProperties)
+
+                    //Get player display name
+                    val json = getPlayerNameForList(p)
+
+                    val info = PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json))
+                    playerInfoPacket.data = List(1) { info }
+
+                    Messager.broadcast("Removing player ${p.name} from tab.")
+                    //Send packet.
+                    playerInfoPacket.sendPacket(player)
+
+
+                    //SCHEDULE JUST ADD player_info onto the event
+
+//                  Commented becausee this doesn't seem to be working
+//                    var container = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO)
+//
+//                    container.playerInfoAction.writeSafely(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER)
+//
+//                    val gameProfileNumber = WrappedGameProfile(uuid, " a")
+//
+//                    gameProfileNumber.properties.putAll(originalProperties)
+//
+//                    val infoNumbers = PlayerInfoData(gameProfileNumber, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json))
+//
+//                    container.playerInfoDataLists.writeSafely(0, List(0) {infoNumbers})
+//
+//                    Messager.broadcast("Adding player ${p.name} to tab.")
+//
+//                    //Send packet.
+//                    val scheduledPacket = ScheduledPacket(container, player, true)
+//                    event.schedule(scheduledPacket)
+
+
+
+
                 }
             }
         )
@@ -176,22 +195,8 @@ class EmojiTab : JavaPlugin()
 
             if (player.canSee(p))
             {
-                //Properly render vanilla scoreboard teams
-                val team = player.scoreboard.getEntryTeam(p.name)
-                lateinit var nameWithTeam: Component
-                if (team != null)
-                {
-                    val prefix = team.prefix()
-                    val color = team.color()
-                    val suffix = team.suffix()
-                    nameWithTeam = prefix.append(p.playerListName().color(color)).append(suffix)
-                }
-                else
-                {
-                    nameWithTeam = p.playerListName()
-                }
+                val json = getPlayerNameForList(p)
 
-                val json = GsonComponentSerializer.gson().serialize(nameWithTeam)
                 run {
                     //Somewhat strange hack to get a second UUID for a player.
                     val uuid = p.uniqueId
@@ -200,7 +205,6 @@ class EmojiTab : JavaPlugin()
 
                     val originalProperties = WrappedGameProfile.fromPlayer(p).properties
                     gameProfile.properties.putAll(originalProperties)
-
 
                     info.add(PlayerInfoData(gameProfile, p.ping, EnumWrappers.NativeGameMode.valueOf(p.gameMode.name), WrappedChatComponent.fromJson(json)))
 
@@ -223,6 +227,26 @@ class EmojiTab : JavaPlugin()
         updateDisplayNamesPacket.data = info
 
         updateDisplayNamesPacket.sendPacket(player)
+    }
+
+    //Used for rendering colors and teams in the tab list
+    fun getPlayerNameForList(p: Player): @NotNull String
+    {
+        //Properly render vanilla scoreboard teams
+        val team = p.scoreboard.getEntryTeam(p.name)
+        lateinit var nameWithTeam: Component
+        if (team != null)
+        {
+            val prefix = team.prefix()
+            val color = team.color()
+            val suffix = team.suffix()
+            nameWithTeam = prefix.append(p.playerListName().color(color)).append(suffix)
+        }
+        else
+        {
+            nameWithTeam = p.playerListName()
+        }
+        return GsonComponentSerializer.gson().serialize(nameWithTeam)
     }
 
     //Remove the fake player with the reversed uuid of player

@@ -29,8 +29,6 @@ class Emojifier(private val plugin: EmojiTab)
     //Returns Component with shortcodes replaced by emojis
     fun emojifyMessage(message: @NotNull Component): Component
     {
-        Messager.send(message.toString())
-
         var newMessage = message
         for (shortcode in emojiMap.keys)
         {

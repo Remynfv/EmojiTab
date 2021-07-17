@@ -1,6 +1,5 @@
 package com.github.remynfv.emojitab.utils
 
-//TODO Possibly a way to automatically sync these with config.yml?
 object Configs
 {
     const val VERBOSE_BOOT = "verbose"

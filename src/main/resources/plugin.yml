@@ -8,8 +8,5 @@ website: https://youtube.com/legitimoose
 depend: [ProtocolLib]
 commands:
   emoji:
-    #TODO Write description
-    aliases:
-      - emojis
-    description: /emoji
-    usage: /emoji [list,reload,toggle]
+    description: Shows list of emojis.
+    usage: /emoji [list|reload|toggle]

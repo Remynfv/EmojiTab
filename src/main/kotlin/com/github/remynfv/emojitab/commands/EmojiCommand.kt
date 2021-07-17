@@ -35,7 +35,6 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
                 return
             }
             plugin.reloadConfigs()
-            plugin.removeAllFakePlayers()
             for (player in Bukkit.getOnlinePlayers())
             {
                 plugin.sendEmojiPackets(player)
@@ -117,7 +116,7 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         return true
     }
 
-    fun showList(sender: CommandSender)
+    private fun showList(sender: CommandSender)
     {
         //Check permissions
         if (!sender.hasPermission(Permissions.LIST) && plugin.usePermissions)

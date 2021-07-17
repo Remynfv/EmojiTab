@@ -27,7 +27,7 @@ object Messager
 
     fun warn(warning: String, sender: CommandSender)
     {
-        send("§c" + warning, sender)
+        send("§c$warning", sender)
     }
 
     fun missingPermissions(permission: String, sender: CommandSender)

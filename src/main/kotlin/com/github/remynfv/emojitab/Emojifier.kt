@@ -35,7 +35,7 @@ class Emojifier(private val plugin: EmojiTab)
         for (shortcode in emojiMap.keys)
         {
             //Create a Pattern to find and replace case insensitively
-            val regex: Pattern = Pattern.compile(shortcode, Pattern.LITERAL + Pattern.CASE_INSENSITIVE);
+            val regex: Pattern = Pattern.compile(shortcode, Pattern.LITERAL + Pattern.CASE_INSENSITIVE)
             val replacement: TextReplacementConfig = TextReplacementConfig.builder().match(regex).replacement(emojiMap.getValue(shortcode)).build()
             newMessage = newMessage.replaceText(replacement)
         }

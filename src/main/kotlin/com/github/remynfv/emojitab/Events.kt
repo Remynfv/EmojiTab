@@ -1,7 +1,6 @@
 package com.github.remynfv.emojitab
 
 import com.github.remynfv.emojitab.utils.Permissions
-import com.github.remynfv.emojitab.utils.Settings
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler

@@ -3,17 +3,16 @@ emojis:
         name: swords
         aliases: crossed_swords
     ☠:
-        name: skull_and_crossbones
+        name: skull
     ©:
         name: copyright
     ®:
         name: registered
     ‼:
-        name: double_exclamation_mark
-        aliases: [ bangbang, '!!' ]
+        name: !!
     ⁉:
-        name: exclamation_question_mark
-        aliases: [ interrobang, '!?', '?!' ]
+        name: interrobang
+        aliases: [ '!?' ]
     ☀:
         name: sun
     ☁:
@@ -23,104 +22,85 @@ emojis:
     ♂:
         name: male_sign
     ♠:
-        name: spade_suit
-        aliases: spades
+        name: spades
     ♣:
-        name: club_suit
-        aliases: clubs
+        name: clubs
     ♥:
-        name: heart_suit
-        aliases: hearts
+        name: hearts
     ♦:
-        name: diamond_suit
-        aliases: diamonds
+        name: diamonds
     ⚡:
-        name: high_voltage
+        name: lightning
         aliases: zap
     ⛏:
-        name: pick
-        aliases: pickaxe
+        name: pickaxe
     ✔:
         name: check_mark
-        aliases: heavy_check_mark
     ❄:
         name: snowflake
     ❌:
-        name: cross_mark
-        aliases: x
+        name: x
     ❤:
-        name: red_heart
-        aliases: heart
+        name: heart
     ⭐:
         name: star
     ⏏:
-        name: eject_button
-        aliases: eject_symbol
+        name: eject
     ⏩:
-        name: fast-forward_button
-        aliases: fast_forward
+        name: fast_forward
     ⏪:
-        name: fast_reverse_button
+        name: fast_reverse
         aliases: rewind
     ⏭:
-        name: next_track_button
-        aliases: black_right__pointing_double_triangle_with_vertical_bar
+        name: next_track
     ⏮:
-        name: last_track_button
-        aliases: black_left__pointing_double_triangle_with_vertical_bar
+        name: last_track
     ⏯:
-        name: play_or_pause_button
-        aliases: black_right__pointing_triangle_with_double_vertical_bar
+        name: play_or_pause
     ⏸:
-        name: pause_button
-        aliases: double_vertical_bar
+        name: pause
     ⏹:
-        name: stop_button
-        aliases: black_square_for_stop
+        name: stop
+        aliases: square
     ⏺:
-        name: record_button
-        aliases: black_circle_for_record
+        name: record
+        aliases: circle
     ▶:
-        name: play_button
+        name: play
         aliases: arrow_forward
     ◀:
-        name: reverse_button
+        name: reverse
         aliases: arrow_backward
     ⚓:
         name: anchor
     ☺:
-        name: smiling_face
-        aliases: relaxed
+        name: smile
     ☹:
-        name: frowning_face
-        aliases: white_frowning_face
+        name: frown
+        aliases: sad
     ✉:
         name: envelope
         aliases: email
     ☂:
         name: umbrella
     ☔:
-        name: umbrella_with_rain_drops
+        name: umbrella_rain
     ☄:
         name: comet
     ⛄:
-        name: snowman_without_snow
+        name: snowman2
     ☃:
         name: snowman
     ⌛:
-        name: hourglass_done
-        aliases: hourglass
+        name: hourglass
     ⌚:
         name: watch
     ❣:
         name: heart_exclamation
-        aliases: heavy_heart_exclamation_mark_ornament
     ⛈:
-        name: cloud_with_lightning_and_rain
-        aliases: thunder_cloud_and_rain
+        name: lightning_rain
     ↔:
-        name: left-right_arrow
-        aliases: left_right_arrow
+        name: left_right
     ⚠:
         name: warning
     Ⓜ:
@@ -129,5 +109,4 @@ emojis:
     ☯:
         name: yin_yang
     ☑:
-        name: check_box_with_check
-        aliases: ballot_box_with_check
+        name: check_box

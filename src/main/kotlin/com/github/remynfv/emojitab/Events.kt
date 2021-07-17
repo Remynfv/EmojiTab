@@ -3,6 +3,7 @@ package com.github.remynfv.emojitab
 import com.github.remynfv.emojitab.utils.Permissions
 import com.github.remynfv.emojitab.utils.Settings
 import io.papermc.paper.event.player.AsyncChatEvent
+import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
@@ -33,12 +34,23 @@ class Events(private val plugin: EmojiTab) : Listener
         if (Settings.getEmojiDisabled(player) || !player.hasPermission(Permissions.USE) && plugin.usePermissions)
             return
 
+
+        //Delay things by 1 tick so they have time to properly load in
         object : BukkitRunnable()
         {
             override fun run()
             {
                 //The emojis don't require a delay, but the player list does if you want it to include yourself
                 plugin.sendEmojiPackets(player)
+
+                //Add this player for everyone else
+                for (p in Bukkit.getOnlinePlayers())
+                {
+                    if (p == player) //No need to update yourself, that's already done
+                        continue
+
+                    plugin.updatePlayerForPlayer(p, player)
+                }
 
             }
         }.runTaskLater(plugin, 1)

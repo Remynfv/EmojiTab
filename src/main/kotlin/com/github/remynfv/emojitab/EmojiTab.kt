@@ -84,7 +84,8 @@ class EmojiTab : JavaPlugin()
 
         //Register events
         server.pluginManager.registerEvents(Events(this), this)
-        registerPacketListener()
+        registerEntitySpawnListener()
+        registerRemovePlayerInfoListener()
 
         //Load emojis for any players who are online already
         for (player in Bukkit.getOnlinePlayers())
@@ -93,17 +94,40 @@ class EmojiTab : JavaPlugin()
         }
     }
 
-    private fun registerPacketListener()
+    private fun registerRemovePlayerInfoListener()
+    {
+        protocolManager.addPacketListener(
+            object : PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.PLAYER_INFO)
+            {
+                override fun onPacketSending(event: PacketEvent)
+                {
+                    if (event.packet.playerInfoAction.readSafely(0) == EnumWrappers.PlayerInfoAction.REMOVE_PLAYER)
+                    {
+                        //Create a wrapper and get the player
+                        val wrapper = WrapperPlayServerPlayerInfo(event.packet)
+
+
+                        //If p is null, we're re-reversing this thing and we can escape the loop
+                        val p = Bukkit.getPlayer(wrapper.data.first().profile.uuid) ?: return
+
+                        removeFlippedUUIDFromTab(p).sendPacket(event.player)
+                    }
+                }
+            })
+    }
+
+    private fun registerEntitySpawnListener()
     {
         protocolManager.addPacketListener(
             object : PacketAdapter(this, ListenerPriority.NORMAL, PacketType.Play.Server.NAMED_ENTITY_SPAWN)
             {
                 override fun onPacketSending(event: PacketEvent)
                 {
+                    //Get event player and a packet wrapper
                     val player = event.player
                     val wrapper = WrapperPlayServerNamedEntitySpawn(event.packet)
 
-                    //Send JUST REMOVE player_info packet here
+                    //Send ADD_PLAYER packet here to briefly change their username from "" to their actual name
                     val playerInfoPacket = WrapperPlayServerPlayerInfo()
                     playerInfoPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
 
@@ -124,10 +148,7 @@ class EmojiTab : JavaPlugin()
                     //Send packet.
                     playerInfoPacket.sendPacket(player)
 
-
-
-                    //SCHEDULE JUST ADD player_info onto the event
-
+                    //Schedule a player update to make sure they're definitely reset after being loaded
                     object : BukkitRunnable()
                     {
                         override fun run()
@@ -185,6 +206,8 @@ class EmojiTab : JavaPlugin()
         updateDisplayNamesPacket.sendPacket(player)
     }
 
+    //mainPlayer is the player we're SENDING the packet
+    //checkPlayer is who is included IN the packet
     fun updatePlayerForPlayer(mainPlayer: Player, checkPlayer: Player)
     {
         //Create the packet
@@ -208,7 +231,8 @@ class EmojiTab : JavaPlugin()
             val json = getPlayerNameForList(checkPlayer)
             val uuid = checkPlayer.uniqueId
 
-            val gameProfile = WrappedGameProfile(uuid, " 0") //i can be 0 //This gets the real UUID so the latency will update
+            //Making the name blank magically teleports them to the top of the tab menu
+            val gameProfile = WrappedGameProfile(uuid, "") //This gets the real UUID so the latency will update
 
             val originalProperties = WrappedGameProfile.fromPlayer(checkPlayer).properties
             gameProfile.properties.putAll(originalProperties)
@@ -257,13 +281,12 @@ class EmojiTab : JavaPlugin()
     {
         val uuidBackwards = UUID.fromString(player.uniqueId.toString().reversed())
 
-
         val packet = WrapperPlayServerPlayerInfo()
         packet.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
 
         val gameProfile = WrappedGameProfile(uuidBackwards, player.name)
 
-        val info = PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName))
+        val info = PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, null)
         packet.data = List(1) { info }
 
         return packet

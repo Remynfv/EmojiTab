@@ -50,9 +50,15 @@ class EmojiTab : JavaPlugin()
      */
     private lateinit var defaultTexturesProperty: WrappedSignedProperty //Init in generateEmojiPackets
 
-    //The packets that will be sent out to load the tab completion of emojis
-    private var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
+    /**
+     * Packet to add all emojis.
+     */
     private lateinit var addEmojisPacket: WrapperPlayServerPlayerInfo
+
+    /**
+     * Packet to remove all emojis.
+     */
+    private var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
 
     //Declare ProtocolManager
     private lateinit var protocolManager: ProtocolManager
@@ -89,9 +95,7 @@ class EmojiTab : JavaPlugin()
 
         //Load emojis for any players who are online already
         for (player in Bukkit.getOnlinePlayers())
-        {
             sendEmojiPackets(player)
-        }
     }
 
     private fun registerRemovePlayerInfoListener()
@@ -105,7 +109,6 @@ class EmojiTab : JavaPlugin()
                     {
                         //Create a wrapper and get the player
                         val wrapper = WrapperPlayServerPlayerInfo(event.packet)
-
 
                         //If p is null, we're re-reversing this thing and we can escape the loop
                         val p = Bukkit.getPlayer(wrapper.data.first().profile.uuid) ?: return
@@ -187,6 +190,9 @@ class EmojiTab : JavaPlugin()
         this.removeEmojisPacket = removeEmojisPacket
     }
 
+    /**
+     * Suppoed to update visible players. doesn't seem to work?
+     */
     private fun updateVisiblePlayers(player: Player)
     {
         val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
@@ -236,35 +242,43 @@ class EmojiTab : JavaPlugin()
 
         if (observer.canSee(targetPlayer))
         {
-            val json = getPlayerNameForList(targetPlayer)
-            val uuid = targetPlayer.uniqueId
+            val playerListNameJson: String = getPlayerNameForList(targetPlayer)
+            val targetPlayerUuid = targetPlayer.uniqueId
 
             //Making the name blank magically teleports them to the top of the tab menu
-            val gameProfile = WrappedGameProfile(uuid, "") //This gets the real UUID so the latency will update
+            val targetGameProfile = WrappedGameProfile(targetPlayerUuid, "") //This gets the real UUID so the latency will update
 
             val originalProperties = WrappedGameProfile.fromPlayer(targetPlayer).properties
-            gameProfile.properties.putAll(originalProperties)
+            targetGameProfile.properties.putAll(originalProperties)
 
-            val output1 = PlayerInfoData(gameProfile, targetPlayer.ping, EnumWrappers.NativeGameMode.valueOf(targetPlayer.gameMode.name), WrappedChatComponent.fromJson(json))
+            /**
+             * PlayerInfoData with correct skin, username of "", but correct display name.
+             */
+            val correctDisplayTopOfListInfoData = PlayerInfoData(targetGameProfile, targetPlayer.ping, EnumWrappers.NativeGameMode.valueOf(targetPlayer.gameMode.name), WrappedChatComponent.fromJson(playerListNameJson))
 
             //Somewhat strange hack to get a second UUID for a player.
-            val uuidBackwards = UUID.nameUUIDFromBytes(targetPlayer.name.toByteArray()) //Somewhat strange hack to get a second UUID for a player.
-            observer.sendMessage("generating uuidModified with version ${uuidBackwards.version()}")
-            observer.sendMessage("origianl uuid ${targetPlayer.uniqueId.version()}")
+            val uuidBackwards = UUID.fromString(targetPlayer.uniqueId.toString().reversed()) //Somewhat strange hack to get a second UUID for a player.
 
             //Create the gameprofile for tab completion
-            val gameProfileReverse = WrappedGameProfile(uuidBackwards, targetPlayer.name)
-            gameProfileReverse.properties.put("textures", defaultTexturesProperty)
+            /**
+             * Gray user with the correct username but no skin/display name.
+             * For tab completion.
+             */
+            val tabCompletionGrayProfile = WrappedGameProfile(uuidBackwards, targetPlayer.name)
+            tabCompletionGrayProfile.properties.put("textures", defaultTexturesProperty)
 
-            val output2 = PlayerInfoData(gameProfileReverse, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName))
+            val tabCompletionGrayInfoData = PlayerInfoData(tabCompletionGrayProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName))
 
-            return listOf(output1, output2)
+            return listOf(tabCompletionGrayInfoData, correctDisplayTopOfListInfoData)
         }
 
         return null
     }
 
-    //Used for rendering colors and teams in the tab list
+    /**
+     * Used for rendering colors and teams in the tab list
+     * @return JSON components as string.
+     */
     fun getPlayerNameForList(p: Player): String
     {
         //Properly render vanilla scoreboard teams
@@ -299,14 +313,16 @@ class EmojiTab : JavaPlugin()
         return packet
     }
 
-    //Sends all necessary packets to player, including emojis and tab-complete fake players
+    /**
+     * Sends all necessary packets to player, including emojis and tab-complete fake players
+     */
     fun sendEmojiPackets(player: Player)
     {
         //If player has emojis disabled don't send them the players OR the fakeplayers
         if (Settings.getEmojiDisabled(player) || !(player.hasPermission(Permissions.USE) || !usePermissions))
             return
 
-//        addEmojisPacket.sendPacket(player)
+        addEmojisPacket.sendPacket(player)
 
         updateVisiblePlayers(player)
     }
@@ -316,8 +332,6 @@ class EmojiTab : JavaPlugin()
         removeEmojisPacket?.sendPacket(player)
         for (p in Bukkit.getOnlinePlayers())
             removeFlippedUUIDFromTab(p).sendPacket(player)
-
-
     }
 
     override fun onDisable()
@@ -344,7 +358,6 @@ class EmojiTab : JavaPlugin()
         config.getBoolean(Configs.INDIVIDUAL_PERMISSIONS).let { individualPermissions = it }
         config.getString(Configs.WRAPPING_CHARACTER)?.let { wrappingCharacter = it }
 
-        println(config.getBoolean(Configs.USE_PERMISSIONS))
         //Load custom skins
         val texture = config.getString(Configs.TEXTURE)
         val signature = config.getString(Configs.SIGNATURE)

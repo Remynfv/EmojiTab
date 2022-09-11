@@ -38,10 +38,9 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
                 return
             }
             plugin.reloadConfigs()
+
             for (player in Bukkit.getOnlinePlayers())
-            {
                 plugin.sendEmojiPackets(player)
-            }
 
             Messager.send("Config and emojis reloaded!", sender)
         }

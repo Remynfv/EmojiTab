@@ -1,112 +1,112 @@
 emojis:
-    ⚔:
-        name: swords
-        aliases: crossed_swords
-    ☠:
-        name: skull
-    ©:
-        name: copyright
-    ®:
-        name: registered
-    ‼:
-        name: !!
-    ⁉:
-        name: interrobang
-        aliases: [ '!?' ]
-    ☀:
-        name: sun
-    ☁:
-        name: cloud
-    ♀:
-        name: female_sign
-    ♂:
-        name: male_sign
-    ♠:
-        name: spades
-    ♣:
-        name: clubs
-    ♥:
-        name: hearts
-    ♦:
-        name: diamonds
-    ⚡:
-        name: lightning
-        aliases: zap
-    ⛏:
-        name: pickaxe
-    ✔:
-        name: check_mark
-    ❄:
-        name: snowflake
-    ❌:
-        name: x
-    ❤:
-        name: heart
-    ⭐:
-        name: star
-    ⏏:
-        name: eject
-    ⏩:
-        name: fast_forward
-    ⏪:
-        name: fast_reverse
-        aliases: rewind
-    ⏭:
-        name: next_track
-    ⏮:
-        name: last_track
-    ⏯:
-        name: play_or_pause
-    ⏸:
-        name: pause
-    ⏹:
-        name: stop
-        aliases: square
-    ⏺:
-        name: record
-        aliases: circle
-    ▶:
-        name: play
-        aliases: arrow_forward
-    ◀:
-        name: reverse
-        aliases: arrow_backward
-    ⚓:
-        name: anchor
-    ☺:
-        name: smile
-    ☹:
-        name: frown
-        aliases: sad
-    ✉:
-        name: envelope
-        aliases: email
-    ☂:
-        name: umbrella
-    ☔:
-        name: umbrella_rain
-    ☄:
-        name: comet
-    ⛄:
-        name: snowman2
-    ☃:
-        name: snowman
-    ⌛:
-        name: hourglass
-    ⌚:
-        name: watch
-    ❣:
-        name: heart_exclamation
-    ⛈:
-        name: lightning_rain
-    ↔:
-        name: left_right
-    ⚠:
-        name: warning
-    Ⓜ:
-        name: circled_M
-        aliases: m
-    ☯:
-        name: yin_yang
-    ☑:
-        name: check_box
+  ⚔:
+    name: swords
+    aliases: crossed_swords
+  ☠:
+    name: skull
+  ©:
+    name: copyright
+  ®:
+    name: registered
+  ‼:
+    name: '!!'
+  ⁉:
+    name: interrobang
+    aliases: [ '!?' ]
+  ☀:
+    name: sun
+  ☁:
+    name: cloud
+  ♀:
+    name: female_sign
+  ♂:
+    name: male_sign
+  ♠:
+    name: spades
+  ♣:
+    name: clubs
+  ♥:
+    name: hearts
+  ♦:
+    name: diamonds
+  ⚡:
+    name: lightning
+    aliases: zap
+  ⛏:
+    name: pickaxe
+  ✔:
+    name: check_mark
+  ❄:
+    name: snowflake
+  ❌:
+    name: x
+  ❤:
+    name: heart
+  ⭐:
+    name: star
+  ⏏:
+    name: eject
+  ⏩:
+    name: fast_forward
+  ⏪:
+    name: fast_reverse
+    aliases: rewind
+  ⏭:
+    name: next_track
+  ⏮:
+    name: last_track
+  ⏯:
+    name: play_or_pause
+  ⏸:
+    name: pause
+  ⏹:
+    name: stop
+    aliases: square
+  ⏺:
+    name: record
+    aliases: circle
+  ▶:
+    name: play
+    aliases: arrow_forward
+  ◀:
+    name: reverse
+    aliases: arrow_backward
+  ⚓:
+    name: anchor
+  ☺:
+    name: smile
+  ☹:
+    name: frown
+    aliases: sad
+  ✉:
+    name: envelope
+    aliases: email
+  ☂:
+    name: umbrella
+  ☔:
+    name: umbrella_rain
+  ☄:
+    name: comet
+  ⛄:
+    name: snowman2
+  ☃:
+    name: snowman
+  ⌛:
+    name: hourglass
+  ⌚:
+    name: watch
+  ❣:
+    name: heart_exclamation
+  ⛈:
+    name: lightning_rain
+  ↔:
+    name: left_right
+  ⚠:
+    name: warning
+  Ⓜ:
+    name: circled_M
+    aliases: m
+  ☯:
+    name: yin_yang
+  ☑:
+    name: check_box

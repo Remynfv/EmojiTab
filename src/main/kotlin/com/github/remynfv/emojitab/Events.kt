@@ -1,9 +1,10 @@
 package com.github.remynfv.emojitab
 
 import com.github.remynfv.emojitab.utils.Permissions
-import io.papermc.paper.event.player.AsyncChatEvent
+import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -12,18 +13,21 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class Events(private val plugin: EmojiTab) : Listener
 {
-    @EventHandler
-    fun onPlayerChat(event: AsyncChatEvent)
+    @Suppress("UnstableApiUsage")
+    @EventHandler(priority = EventPriority.LOW)
+    fun onChatDecorate(event: AsyncChatDecorateEvent)
     {
+        val player = event.player()
+
         //If player lacks permission to use emojis altogether, return
-        if (!event.player.hasPermission(Permissions.USE) && plugin.usePermissions)
+        if (player != null && !player.hasPermission(Permissions.USE) && plugin.usePermissions)
             return
 
         //Add emojis to any player chat
-        val newMessage = plugin.emojifier.emojifyMessage(event.message())
+        val newMessage = plugin.emojifier.emojifyMessage(event.result(), player)
 
         //Replace the event.message with the emojified version
-        event.message(newMessage)
+        event.result(newMessage)
     }
 
     @EventHandler

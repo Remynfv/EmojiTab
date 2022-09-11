@@ -1,18 +1,24 @@
 package com.github.remynfv.emojitab
 
 import com.github.remynfv.emojitab.utils.Messager
+import com.github.remynfv.emojitab.utils.Permissions
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import org.bukkit.configuration.file.FileConfiguration
+import org.bukkit.permissions.Permissible
 import org.jetbrains.annotations.NotNull
 import java.util.regex.Pattern
 
 class Emojifier(private val plugin: EmojiTab)
 {
-    //Hashmap that stores all :shortcode: -> Emoji pairs
+    /**
+     * Hashmap that stores all :shortcode: -> Emoji pairs
+     */
     var emojiMap = HashMap<String, String>()
 
-    //Returns a string with shortcodes replaced by emojis
+    /**
+     * Returns a string with shortcodes replaced by emojis
+     */
     fun emojifyString(message: String): String
     {
         var newMessage = message
@@ -26,12 +32,18 @@ class Emojifier(private val plugin: EmojiTab)
         return newMessage
     }
 
-    //Returns Component with shortcodes replaced by emojis
-    fun emojifyMessage(message: @NotNull Component): Component
+    /**
+     * Returns Component with shortcodes replaced by emojis
+     */
+    fun emojifyMessage(message: @NotNull Component, permissionHolder: Permissible?): Component
     {
         var newMessage = message
         for (shortcode in emojiMap.keys)
         {
+            if (plugin.individualPermissions
+                && permissionHolder?.hasPermission(Permissions.USE_PREFIX + shortcode.substring(plugin.wrappingCharacter.length, shortcode.length - plugin.wrappingCharacter.length)) == false)
+                continue
+
             //Create a Pattern to find and replace case insensitively
             val regex: Pattern = Pattern.compile(shortcode, Pattern.LITERAL + Pattern.CASE_INSENSITIVE)
             val replacement: TextReplacementConfig = TextReplacementConfig.builder().match(regex).replacement(emojiMap.getValue(shortcode)).build()
@@ -40,7 +52,9 @@ class Emojifier(private val plugin: EmojiTab)
         return newMessage
     }
 
-    //Reads from emojis.yml and saves pairs to a hashmap
+    /**
+     * Reads from emojis.yml and saves pairs to a hashmap
+     */
     fun loadEmojisFromConfig()
     {
         emojiMap = HashMap()
@@ -55,7 +69,7 @@ class Emojifier(private val plugin: EmojiTab)
 
             //Register a list of aliases
             val aliases = config.getStringList("emojis.$character.aliases")
-            if (!aliases.isNullOrEmpty())
+            if (aliases.isNotEmpty())
             {
                 for (alias in aliases)
                 {
@@ -78,25 +92,20 @@ class Emojifier(private val plugin: EmojiTab)
         val maxLength = 16 - (2 * wrappingCharacter.length)
 
         if (shortcode.length > maxLength)
-        {
             Messager.warn("Emoji name '$wrappingCharacter$shortcode$wrappingCharacter' is over 16 characters and will be trimmed!")
-        }
+
         val shortcodeCut = shortcode.take(maxLength)
         val shortcodeWithWrapping = wrappingCharacter + shortcodeCut + wrappingCharacter
 
         if (emojiMap.containsKey(shortcodeWithWrapping))
-        {
             Messager.warn("Duplicate emoji name \"$shortcode\" Please double check your emojis.yml file!")
-        }
 
         //Log emojis if verbose
         if(plugin.verbose)
-        {
             if (!emojiMap.containsKey(character))
                 Messager.send("Registered emoji $character to shortcode $shortcodeWithWrapping")
             else
                 Messager.send("§8Registered emoji $character to shortcode $shortcodeWithWrapping (as alias)")
-        }
 
         emojiMap[shortcodeWithWrapping] = character
     }

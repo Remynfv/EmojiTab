@@ -15,7 +15,12 @@ import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
 
-val subcommands = listOf("reload", "toggle", "list").toMutableList()
+enum class EmojiSubCommand(val permission: String)
+{
+    reload(Permissions.RELOAD),
+    toggle(Permissions.TOGGLE_SELF),
+    list(Permissions.LIST)
+}
 
 class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
 {
@@ -150,9 +155,15 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         when (args.size)
         {
             1 -> {
-                return subcommands
+                val output = mutableListOf<String>()
+                for (cmd in EmojiSubCommand.values())
+                    if (sender.hasPermission(cmd.permission)) output.add(cmd.name)
+                return output
             }
             2 -> {
+                if (!sender.hasPermission(Permissions.TOGGLE_OTHERS))
+                    return null
+
                 when (args[0].lowercase())
                 {
                     "toggle" -> {

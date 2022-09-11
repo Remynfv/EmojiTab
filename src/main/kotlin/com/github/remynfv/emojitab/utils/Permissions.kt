@@ -7,4 +7,5 @@ object Permissions
     const val RELOAD = "emoji.reload"
     const val USE = "emoji.use"
     const val LIST = "emoji.list"
+    const val USE_PREFIX = "emoji.use."
 }

@@ -8,9 +8,7 @@ object VanishAPI
     fun isVanished(player: Player): Boolean
     {
         for (meta in player.getMetadata("vanished"))
-        {
             if (meta.asBoolean()) return true
-        }
         return false
     }
 }

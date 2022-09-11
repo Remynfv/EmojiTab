@@ -5,7 +5,9 @@ import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
-import com.comphenix.protocol.events.*
+import com.comphenix.protocol.events.ListenerPriority
+import com.comphenix.protocol.events.PacketAdapter
+import com.comphenix.protocol.events.PacketEvent
 import com.comphenix.protocol.wrappers.*
 import com.github.remynfv.emojitab.commands.EmojiCommand
 import com.github.remynfv.emojitab.utils.*
@@ -32,6 +34,7 @@ class EmojiTab : JavaPlugin()
     var usePermissions: Boolean = true
     var verbose: Boolean = false
     var wrappingCharacter: String = ""
+
     //Dim gray, courtesy of someone off mineskin.org (https://mineskin.org/14b3cfc390dc440282195d8a74b742f4)
     private var texture: String = "ewogICJ0aW1lc3RhbXAiIDogMTYyMTQxMTE5MDkyMywKICAicHJvZmlsZUlkIiA6ICJmZDQ3Y2I4YjgzNjQ0YmY3YWIyYmUxODZkYjI1ZmMwZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDVUNGTDEyIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ4NDYxNmVhNDI0OTk1NzI4OGE5Y2Y4ZTNhM2E0ZjVjZDU0NDYxNjk1ZTczMmM5ZWViOTA4NDBmZDRkYzg3YjQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
     private var signature: String = "vAk/+xJkgEYANJq2FxjfX4xT5Lo+z1+YNnvWPUgLnpwgj3Vq1nqKZ24y0mHbsLROE3JCnOW1vJObFyNRBktInFXX5RhAv8yis/TSyFFhR3rjnC8ZEMSlM0gyy2K9nJxjY+jDSVBNBaBmWs1JbhPWl2zN/eaMEMivAwZmBLqhTLIV/o4IAUAIPDkxdEw5MGtp81wEot1YSMc1PkGYANx7VTGUy2eCe4AhjDgUrWLkGPkSWeCowU1xQzT5DeWw5V6sylRWXR7DTkzonteRA5jO4gXrXXt5CdytGbz8SOT9V2xnhUPbnRZOgeRKwwHphAJ4N+g2+C5BGxrfSlnmj8YZKAlM17YEK2ej1eClxmmxIW/2bjZnCJR0U7f750evnXb6ZcjIQ+P400RpSCUo79L9cbvz3rHU36IcHKl3GmGG9uyr15C6DVa5WGj5A19fmzIMyRG5e5GTH6NPVC+yK5R0M36in88iP1HQFY9CdPn9NixrdRcCcXPcOcKFsNXE6la+UMhSlsXX+FS5zGtMvTedn5fPglP0DWur9Iz4Z/Bk5ZoZ93NdpF/h63rLZG9xYBs+gf8UEESPRykZSB2wIRO4039s3TC4g8i/lUBn4Zt6IpUiXip9rK7ihKdy3bVX8YywxmCL9oqhfQK0jnFk1dPDBCs/QDMCYnP4fLkLEqPZRrI="
@@ -46,7 +49,7 @@ class EmojiTab : JavaPlugin()
     private lateinit var defaultTexturesProperty: WrappedSignedProperty //Init in generateEmojiPackets
 
     //The packets that will be sent out to load the tab completion of emojis
-    private lateinit var removeEmojisPacket: WrapperPlayServerPlayerInfo
+    private var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
     private lateinit var addEmojisPacket: WrapperPlayServerPlayerInfo
 
     //Declare ProtocolManager
@@ -167,7 +170,7 @@ class EmojiTab : JavaPlugin()
             val shortcode2 = shortcode.take(16)
             val randomUUID = UUID.randomUUID()
             val gameProfile = WrappedGameProfile(randomUUID, shortcode2)
-            defaultTexturesProperty = WrappedSignedProperty("textures", texture,signature)
+            defaultTexturesProperty = WrappedSignedProperty("textures", texture, signature)
             gameProfile.properties.put("textures", defaultTexturesProperty)
             info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName)))
 
@@ -176,8 +179,8 @@ class EmojiTab : JavaPlugin()
 
         //Configure an identical packet to do the reverse.
         removeEmojisPacket = WrapperPlayServerPlayerInfo()
-        removeEmojisPacket.data = addEmojisPacket.data
-        removeEmojisPacket.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER     //Does this work?
+        removeEmojisPacket?.data = addEmojisPacket.data
+        removeEmojisPacket?.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER     //Does this work?
     }
 
     fun updateVisiblePlayers(player: Player)
@@ -297,9 +300,11 @@ class EmojiTab : JavaPlugin()
 
     fun sendRemoveEmojiPackets(player: Player)
     {
-        removeEmojisPacket.sendPacket(player)
+        removeEmojisPacket?.sendPacket(player)
         for (p in Bukkit.getOnlinePlayers())
             removeFlippedUUIDFromTab(p).sendPacket(player)
+
+
     }
 
     override fun onDisable()
@@ -332,7 +337,9 @@ class EmojiTab : JavaPlugin()
             this.signature = signature
         }
 
-        removeAllFakePlayers()
+        //On first run it will be null
+        if (removeEmojisPacket != null)
+            removeAllFakePlayers()
 
         //Load the config into a variable
         createEmojiListConfig()
@@ -362,7 +369,17 @@ class EmojiTab : JavaPlugin()
             saveResource("emojis.yml", false)
         }
 
-        //Load it in
-        emojisConfig = YamlConfiguration.loadConfiguration(emojisConfigFile)
+        //Load 'em in and hope it doesn't break
+        emojisConfig = YamlConfiguration()
+        try
+        {
+            emojisConfig.load(emojisConfigFile)
+        } catch (e: IOException)
+        {
+            e.printStackTrace()
+        } catch (e: InvalidConfigurationException)
+        {
+            e.printStackTrace()
+        }
     }
 }

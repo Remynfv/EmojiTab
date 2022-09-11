@@ -19,8 +19,6 @@ val subcommands = listOf("reload", "toggle", "list").toMutableList()
 
 class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
 {
-
-
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean
     {
         //Generic error

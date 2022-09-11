@@ -1,7 +1,7 @@
 name: EmojiTab
 version: ${project.version}
 main: com.github.remynfv.emojitab.EmojiTab
-api-version: 1.17
+api-version: 1.19
 authors: [ Legitimoose ]
 description: A plugin for tab completing emojis!
 website: https://youtube.com/legitimoose

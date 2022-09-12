@@ -49,7 +49,8 @@ class Events(private val plugin: EmojiTab) : Listener
                     if (p == player) //No need to update yourself, that's already done
                         continue
 
-                    plugin.updatePlayerForPlayer(p, player)
+                    plugin.updatePlayerForPlayer(p, player, false, true)
+                    plugin.updatePlayerForPlayer(p, player, true, false)
                 }
 
             }
@@ -60,5 +61,6 @@ class Events(private val plugin: EmojiTab) : Listener
     fun onPlayerQuit(event: PlayerQuitEvent)
     {
         plugin.removeFlippedUUIDFromTab(event.player).broadcastPacket()
+        plugin.removeDerivedUUIDFromTab(event.player).broadcastPacket()
     }
 }

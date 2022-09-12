@@ -114,6 +114,7 @@ class EmojiTab : JavaPlugin()
                         val p = Bukkit.getPlayer(wrapper.data.first().profile.uuid) ?: return
 
                         removeFlippedUUIDFromTab(p).sendPacket(event.player)
+                        removeDerivedUUIDFromTab(p).sendPacket(event.player)
                     }
                 }
             })
@@ -127,7 +128,7 @@ class EmojiTab : JavaPlugin()
                 override fun onPacketSending(event: PacketEvent)
                 {
                     //Get event player and a packet wrapper
-                    val player = event.player
+                    val newPlayer = event.player
                     val wrapper = WrapperPlayServerNamedEntitySpawn(event.packet)
 
                     //Send ADD_PLAYER packet here to briefly change their username from "" to their actual name
@@ -149,14 +150,15 @@ class EmojiTab : JavaPlugin()
                     playerInfoPacket.data = List(1) { info }
 
                     //Send packet.
-                    playerInfoPacket.sendPacket(player)
+                    playerInfoPacket.sendPacket(newPlayer)
 
                     //Schedule a player update to make sure they're definitely reset after being loaded
                     object : BukkitRunnable()
                     {
                         override fun run()
                         {
-                            updatePlayerForPlayer(player, p)
+                            updatePlayerForPlayer(newPlayer, p, false, true)
+                            updatePlayerForPlayer(newPlayer, p, true, false)
                         }
                     }.runTaskLater(plugin, 1)
                 }
@@ -191,21 +193,41 @@ class EmojiTab : JavaPlugin()
     }
 
     /**
-     * Suppoed to update visible players. doesn't seem to work?
+     * Supposed to update visible players. doesn't seem to work?
      */
-    private fun updateVisiblePlayers(player: Player)
+    private fun updateVisiblePlayers(player: Player, addPlayers: Boolean)
     {
         val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
-        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
+        updateDisplayNamesPacket.action = if (addPlayers) EnumWrappers.PlayerInfoAction.ADD_PLAYER else EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
 
         val info = ArrayList<PlayerInfoData>()
 
         for (p in Bukkit.getOnlinePlayers())
         {
-            val playerInfoData = getDataPlayerForPlayer(player, p) ?: continue
+            val playerInfoData = getDataPlayerForPlayer(player, p, !addPlayers) ?: continue
 
             info.addAll(playerInfoData)
         }
+
+        updateDisplayNamesPacket.data = info
+
+//        removeSelf(player)
+        updateDisplayNamesPacket.sendPacket(player)
+    }
+
+    /**
+     * Removes the player from the tab menu for themself.
+     */
+    fun removeSelf(player: Player)
+    {
+        val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
+        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
+
+        val info = ArrayList<PlayerInfoData>()
+
+        val playerInfoData = getDataPlayerForPlayer(player, player, true)?: return
+
+        info.addAll(playerInfoData)
 
         updateDisplayNamesPacket.data = info
 
@@ -216,16 +238,16 @@ class EmojiTab : JavaPlugin()
      * @param observer Player we're sending the packet to.
      * @param targetPlayer Player included in the packet.
      */
-    fun updatePlayerForPlayer(observer: Player, targetPlayer: Player)
+    fun updatePlayerForPlayer(observer: Player, targetPlayer: Player, addPlayers: Boolean, realUUIDs: Boolean = false)
     {
         //Create the packet
         val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
 
         //Assign values
-        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
-        updateDisplayNamesPacket.data = getDataPlayerForPlayer(observer, targetPlayer)
+        updateDisplayNamesPacket.action = if (addPlayers) EnumWrappers.PlayerInfoAction.ADD_PLAYER else EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
 
         //Send it
+        updateDisplayNamesPacket.data = getDataPlayerForPlayer(observer, targetPlayer, realUUIDs)
         updateDisplayNamesPacket.sendPacket(observer)
     }
 
@@ -235,7 +257,7 @@ class EmojiTab : JavaPlugin()
      *
      * @return Null if vanished or hidden.
      */
-    private fun getDataPlayerForPlayer(observer: Player, targetPlayer: Player): List<PlayerInfoData>?
+    private fun getDataPlayerForPlayer(observer: Player, targetPlayer: Player, useRealUUIDs: Boolean): List<PlayerInfoData>?
     {
         if (VanishAPI.isVanished(targetPlayer)) //Generic vanish "API" support.
             return null
@@ -243,7 +265,7 @@ class EmojiTab : JavaPlugin()
         if (observer.canSee(targetPlayer))
         {
             val playerListNameJson: String = getPlayerNameForList(targetPlayer)
-            val targetPlayerUuid = targetPlayer.uniqueId
+            val targetPlayerUuid = if (useRealUUIDs) targetPlayer.uniqueId else UUID.nameUUIDFromBytes(targetPlayer.uniqueId.toString().toByteArray())
 
             //Making the name blank magically teleports them to the top of the tab menu
             val targetGameProfile = WrappedGameProfile(targetPlayerUuid, "") //This gets the real UUID so the latency will update
@@ -314,6 +336,24 @@ class EmojiTab : JavaPlugin()
     }
 
     /**
+     * Remove UUID generated by main uuid
+     */
+    fun removeDerivedUUIDFromTab(player: Player): WrapperPlayServerPlayerInfo
+    {
+        val uuidDerived = UUID.nameUUIDFromBytes(player.uniqueId.toString().toByteArray())
+
+        val packet = WrapperPlayServerPlayerInfo()
+        packet.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
+
+        val gameProfile = WrappedGameProfile(uuidDerived, "")
+
+        val info = PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, null)
+        packet.data = List(1) { info }
+
+        return packet
+    }
+
+    /**
      * Sends all necessary packets to player, including emojis and tab-complete fake players
      */
     fun sendEmojiPackets(player: Player)
@@ -324,14 +364,18 @@ class EmojiTab : JavaPlugin()
 
         addEmojisPacket.sendPacket(player)
 
-        updateVisiblePlayers(player)
+        updateVisiblePlayers(player, false)
+        updateVisiblePlayers(player, true)
     }
 
     fun sendRemoveEmojiPackets(player: Player)
     {
         removeEmojisPacket?.sendPacket(player)
         for (p in Bukkit.getOnlinePlayers())
+        {
             removeFlippedUUIDFromTab(p).sendPacket(player)
+            removeDerivedUUIDFromTab(p).sendPacket(player)
+        }
     }
 
     override fun onDisable()

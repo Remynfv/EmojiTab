@@ -31,12 +31,25 @@ class EmojiTab : JavaPlugin()
     var verbose: Boolean = false
     var wrappingCharacter: String = ""
 
-    //Dim gray, courtesy of someone off mineskin.org (https://mineskin.org/14b3cfc390dc440282195d8a74b742f4)
+    /**
+     * Texture to be used for fake player skins.
+     *
+     * Defaults to a gray skin courtesy of someone off mineskin.org ( https://mineskin.org/14b3cfc390dc440282195d8a74b742f4 )
+     * Can be modified in [reloadConfigs].
+     * @see signature
+     */
     private var texture: String = "ewogICJ0aW1lc3RhbXAiIDogMTYyMTQxMTE5MDkyMywKICAicHJvZmlsZUlkIiA6ICJmZDQ3Y2I4YjgzNjQ0YmY3YWIyYmUxODZkYjI1ZmMwZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDVUNGTDEyIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ4NDYxNmVhNDI0OTk1NzI4OGE5Y2Y4ZTNhM2E0ZjVjZDU0NDYxNjk1ZTczMmM5ZWViOTA4NDBmZDRkYzg3YjQiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+
+    /**
+     * Signature to go with [texture].
+     */
     private var signature: String = "vAk/+xJkgEYANJq2FxjfX4xT5Lo+z1+YNnvWPUgLnpwgj3Vq1nqKZ24y0mHbsLROE3JCnOW1vJObFyNRBktInFXX5RhAv8yis/TSyFFhR3rjnC8ZEMSlM0gyy2K9nJxjY+jDSVBNBaBmWs1JbhPWl2zN/eaMEMivAwZmBLqhTLIV/o4IAUAIPDkxdEw5MGtp81wEot1YSMc1PkGYANx7VTGUy2eCe4AhjDgUrWLkGPkSWeCowU1xQzT5DeWw5V6sylRWXR7DTkzonteRA5jO4gXrXXt5CdytGbz8SOT9V2xnhUPbnRZOgeRKwwHphAJ4N+g2+C5BGxrfSlnmj8YZKAlM17YEK2ej1eClxmmxIW/2bjZnCJR0U7f750evnXb6ZcjIQ+P400RpSCUo79L9cbvz3rHU36IcHKl3GmGG9uyr15C6DVa5WGj5A19fmzIMyRG5e5GTH6NPVC+yK5R0M36in88iP1HQFY9CdPn9NixrdRcCcXPcOcKFsNXE6la+UMhSlsXX+FS5zGtMvTedn5fPglP0DWur9Iz4Z/Bk5ZoZ93NdpF/h63rLZG9xYBs+gf8UEESPRykZSB2wIRO4039s3TC4g8i/lUBn4Zt6IpUiXip9rK7ihKdy3bVX8YywxmCL9oqhfQK0jnFk1dPDBCs/QDMCYnP4fLkLEqPZRrI="
 
-    //This is emojis.yml
-    private lateinit var emojisConfig: FileConfiguration
+    /**
+     * Contents of emojis.yml. Set by [createEmojiListConfig].
+     */
+    lateinit var emojisConfig: FileConfiguration
+        private set
 
     //The Great Emojifier class, where most of the work gets done
     lateinit var emojifier: Emojifier
@@ -54,9 +67,8 @@ class EmojiTab : JavaPlugin()
     /**
      * Packet to remove all emojis.
      */
-    private var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
+    var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
 
-    //Declare ProtocolManager
     private lateinit var protocolManager: ProtocolManager
 
     /**
@@ -65,9 +77,6 @@ class EmojiTab : JavaPlugin()
      */
     private lateinit var team: Team
 
-    /*
-    TODO Move player update functions into own class, declutter this class
-     */
     override fun onEnable()
     {
         // Plugin startup logic
@@ -96,9 +105,8 @@ class EmojiTab : JavaPlugin()
         //Register events
         server.pluginManager.registerEvents(Events(this), this)
 
-        //Load emojis for any players who are online already
         for (player in Bukkit.getOnlinePlayers())
-            sendEmojiPackets(player)
+            trySendEmojiPacket(player) // Load emojis for any players who are online after /reload
     }
 
     private fun generateEmojiPackets()
@@ -129,9 +137,9 @@ class EmojiTab : JavaPlugin()
     }
 
     /**
-     * Sends all necessary packets to player, including emojis and tab-complete fake players
+     * Sends all the emoji packets to the player, if they have permission and have emojis enabled.
      */
-    fun sendEmojiPackets(player: Player)
+    fun trySendEmojiPacket(player: Player)
     {
         //If player has emojis disabled don't send them the players OR the fakeplayers
         if (Settings.getEmojiDisabled(player) || !(player.hasPermission(Permissions.USE) || !usePermissions))
@@ -140,25 +148,14 @@ class EmojiTab : JavaPlugin()
         addEmojisPacket.sendPacket(player)
     }
 
-    fun sendRemoveEmojiPackets(player: Player)
-    {
-        removeEmojisPacket?.sendPacket(player)
-    }
-
     override fun onDisable()
     {
-        // Plugin shutdown logic
-        removeAllFakePlayers() //Remove autocorrect bois for all players, to avoid clogging up the tab menu if unwanted
+        removeEmojisPacket?.broadcastPacket() // Clear the player list when using /reload or on a crash.
     }
 
-    //Removes all fake players for server/config reloads
-    private fun removeAllFakePlayers()
-    {
-        for (player in Bukkit.getOnlinePlayers())
-            sendRemoveEmojiPackets(player)
-    }
-
-    //Big mama function that reloads everything in the correct order
+    /**
+     * Reload all configs and fake players.
+     */
     fun reloadConfigs()
     {
         reloadConfig()
@@ -178,12 +175,10 @@ class EmojiTab : JavaPlugin()
             this.signature = signature
         }
 
-        //On first run it will be null
-        if (removeEmojisPacket != null)
-            removeAllFakePlayers()
+        // Clear the tab list before we add it.
+        removeEmojisPacket?.broadcastPacket()
 
-        //Load the config into a variable
-        createEmojiListConfig()
+        createEmojiListConfig() //Load emojis.yml into a variable
 
         //Load emojis into hashmap
         emojifier.loadEmojisFromConfig()
@@ -192,13 +187,9 @@ class EmojiTab : JavaPlugin()
         generateEmojiPackets()
     }
 
-    //Get the FileConfiguration for the emoji list
-    fun getEmojisConfig(): FileConfiguration
-    {
-        return this.emojisConfig
-    }
-
-    //Load emojis.yml into emojisConfig
+    /**
+     * Load emojis.yml into [emojisConfig]
+     */
     private fun createEmojiListConfig()
     {
         val emojisConfigFile = File(dataFolder, "emojis.yml")

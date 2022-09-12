@@ -17,22 +17,6 @@ class Emojifier(private val plugin: EmojiTab)
     var emojiMap = HashMap<String, String>()
 
     /**
-     * Returns a string with shortcodes replaced by emojis
-     */
-    fun emojifyString(message: String): String
-    {
-        var newMessage = message
-        for (shortcode in emojiMap.keys)
-        {
-            if (message.contains(shortcode))
-            {
-                newMessage = message.replace(shortcode, emojiMap.getValue(shortcode))
-            }
-        }
-        return newMessage
-    }
-
-    /**
      * Returns Component with shortcodes replaced by emojis
      */
     fun emojifyMessage(message: @NotNull Component, permissionHolder: Permissible?): Component
@@ -53,12 +37,12 @@ class Emojifier(private val plugin: EmojiTab)
     }
 
     /**
-     * Reads from emojis.yml and saves pairs to a hashmap
+     * Reads from emojis.yml and saves :shortcode: -> emoji pairs to [emojiMap].
      */
     fun loadEmojisFromConfig()
     {
         emojiMap = HashMap()
-        val config: FileConfiguration = plugin.getEmojisConfig()
+        val config: FileConfiguration = plugin.emojisConfig
         val keys: MutableSet<String> = checkNotNull(config.getConfigurationSection("emojis")?.getKeys(false))
 
         for (character: String in keys)
@@ -86,6 +70,11 @@ class Emojifier(private val plugin: EmojiTab)
         }
     }
 
+    /**
+     * Registers a new emoji with the given shortcode and character.
+     * @param character The character/string being registered.
+     * @param shortcode The string to search for and replace. (Including wrapping characters.)
+     */
     private fun registerEmoji(character: String, shortcode: String)
     {
         val wrappingCharacter = plugin.wrappingCharacter

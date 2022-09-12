@@ -40,7 +40,7 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
             plugin.reloadConfigs()
 
             for (player in Bukkit.getOnlinePlayers())
-                plugin.sendEmojiPackets(player)
+                plugin.trySendEmojiPacket(player) // Send emojis to everyone on /emoji reload
 
             Messager.send("Config and emojis reloaded!", sender)
         }
@@ -85,13 +85,12 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
             if (emojisOff)
             {
                 Messager.send("Emojis turned OFF for ${player.name}", sender)
-                plugin.sendRemoveEmojiPackets(player)
+                plugin.removeEmojisPacket?.sendPacket(player)
             }
             else
             {
                 Messager.send("Emojis turned ON for ${player.name}", sender)
-                plugin.sendEmojiPackets(player)
-
+                plugin.trySendEmojiPacket(player) // Toggle emojis on for player.
             }
         }
 

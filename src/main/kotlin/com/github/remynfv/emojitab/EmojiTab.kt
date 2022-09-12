@@ -20,6 +20,7 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
+import org.bukkit.scoreboard.Team
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -56,6 +57,8 @@ class EmojiTab : JavaPlugin()
 
     //Declare ProtocolManager
     private lateinit var protocolManager: ProtocolManager
+
+    lateinit var bottomTeam: Team
 
     /*
     TODO Move player update functions into own class, declutter this class
@@ -231,6 +234,7 @@ class EmojiTab : JavaPlugin()
      */
     private fun getDataPlayerForPlayer(observer: Player, targetPlayer: Player): List<PlayerInfoData>?
     {
+        return null
         if (VanishAPI.isVanished(targetPlayer)) //Generic vanish "API" support.
             return null
 
@@ -240,7 +244,7 @@ class EmojiTab : JavaPlugin()
             val uuid = targetPlayer.uniqueId
 
             //Making the name blank magically teleports them to the top of the tab menu
-            val gameProfile = WrappedGameProfile(uuid, " ") //This gets the real UUID so the latency will update
+            val gameProfile = WrappedGameProfile(uuid, targetPlayer.name) //This gets the real UUID so the latency will update
 
             val originalProperties = WrappedGameProfile.fromPlayer(targetPlayer).properties
             gameProfile.properties.putAll(originalProperties)
@@ -308,7 +312,12 @@ class EmojiTab : JavaPlugin()
 
         addEmojisPacket.sendPacket(player)
 
-        updateVisiblePlayers(player, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER)
+        addEmojisPacket.data.forEach {info ->
+            Bukkit.getScoreboardManager().mainScoreboard.getTeam("z")?.addEntry(info.profile.name)
+
+        }
+
+//        updateVisiblePlayers(player, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER)
         updateVisiblePlayers(player, EnumWrappers.PlayerInfoAction.ADD_PLAYER)
     }
 

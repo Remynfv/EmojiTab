@@ -8,6 +8,9 @@ emojis:
     name: copyright
   ®:
     name: registered
+  ™:
+    name: tm
+    aliases: trademark
   ‼:
     name: '!!'
   ⁉:
@@ -110,3 +113,5 @@ emojis:
     name: yin_yang
   ☑:
     name: check_box
+  (ノಠ益ಠ)ノ彡┻━┻:
+    name: table_flip

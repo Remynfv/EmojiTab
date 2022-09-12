@@ -1,19 +1,22 @@
-#Emojifier plugin by Legitimoose
+# Emojifier plugin by Legitimoose
 
-#Character to put around emojis, can be left blank if desired.
-#Defaults to semicolon ":"
+# Character to put around emojis, can be left blank if desired.
+# Defaults to semicolon ":"
 emoji-wrapping: ":"
 
-#Require permission emoji.use to be able to use emojis.
+# Require permission emoji.use to be able to use emojis.
 use-permissions: false
+
+# Require permission emoji.use.<emoji name> to be able to use emojis.
+# All emojis will still be visible in tab-completion to players without permission.
 individual-permissions: false
 
-#Whether to spam the server log with every emoji's data on startup
+# Whether to spam the server log with every emoji's data on startup
 verbose: false
 
-#Use these if you want to change the skin in the tablist from the default gray.
-#Any skin will work, but hat layers will not be displayed.
-#Go to mineskin.org and choose a skin.
-#Copy and paste "Texture Data" and "Texture Signature" here.
+# CUSTOM PLAYER LIST SKIN
+#
+# Go to https://mineskin.org and choose a skin.
+# Copy and paste "Texture Data" and "Texture Signature" into here.
 custom-texture-data:
 custom-texture-signature:

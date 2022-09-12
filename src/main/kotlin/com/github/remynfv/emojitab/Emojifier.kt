@@ -12,9 +12,9 @@ import java.util.regex.Pattern
 class Emojifier(private val plugin: EmojiTab)
 {
     /**
-     * Hashmap that stores all :shortcode: -> Emoji pairs
+     *
      */
-    var emojiMap = HashMap<String, String>()
+    var emojiList = mutableListOf<Emoji>()
 
     /**
      * Returns Component with shortcodes replaced by emojis
@@ -22,26 +22,29 @@ class Emojifier(private val plugin: EmojiTab)
     fun emojifyMessage(message: @NotNull Component, permissionHolder: Permissible?): Component
     {
         var newMessage = message
-        for (shortcode in emojiMap.keys)
+        for (emoji in emojiList)
         {
+            if (emoji.canBeSkipped)
+                continue // Some emojis may not need to be replaced.
+
             if (plugin.individualPermissions
-                && permissionHolder?.hasPermission(Permissions.USE_PREFIX + shortcode.substring(plugin.wrappingCharacter.length, shortcode.length - plugin.wrappingCharacter.length)) == false)
+                && permissionHolder?.hasPermission(Permissions.USE_PREFIX + emoji.unwrappedShortCode) == false)
                 continue
 
             //Create a Pattern to find and replace case insensitively
-            val regex: Pattern = Pattern.compile(shortcode, Pattern.LITERAL + Pattern.CASE_INSENSITIVE)
-            val replacement: TextReplacementConfig = TextReplacementConfig.builder().match(regex).replacement(emojiMap.getValue(shortcode)).build()
+            val regex: Pattern = Pattern.compile(emoji.shortCode, Pattern.LITERAL + Pattern.CASE_INSENSITIVE)
+            val replacement: TextReplacementConfig = TextReplacementConfig.builder().match(regex).replacement(emoji.character).build()
             newMessage = newMessage.replaceText(replacement)
         }
         return newMessage
     }
 
     /**
-     * Reads from emojis.yml and saves :shortcode: -> emoji pairs to [emojiMap].
+     * Reads from emojis.yml and saves :shortcode: -> emoji pairs to [emojiList].
      */
     fun loadEmojisFromConfig()
     {
-        emojiMap = HashMap()
+        emojiList = mutableListOf()
         val config: FileConfiguration = plugin.emojisConfig
         val keys: MutableSet<String> = checkNotNull(config.getConfigurationSection("emojis")?.getKeys(false))
 
@@ -49,7 +52,10 @@ class Emojifier(private val plugin: EmojiTab)
         {
             //Register the main emoji
             val name = config.getString("emojis.$character.name")
-            name?.let { registerEmoji(character, it) }
+            if (name != null)
+                registerEmoji(character, name, true) // Register ☁ as :cloud:
+            else
+                registerEmoji(character, character, false) // Register ☁ as ☁
 
             //Register a list of aliases
             val aliases = config.getStringList("emojis.$character.aliases")
@@ -64,8 +70,8 @@ class Emojifier(private val plugin: EmojiTab)
             else //If the "aliases" is null, it must not be a list, so it is therefore a string
             {
                 //Register a single string alias
-                val alias = config.getString("emojis.$character.aliases")
-                alias?.let { registerEmoji(character, it) }
+                val alias = config.getString("emojis.$character.aliases")?: continue
+                 registerEmoji(character, alias)
             }
         }
     }
@@ -75,7 +81,7 @@ class Emojifier(private val plugin: EmojiTab)
      * @param character The character/string being registered.
      * @param shortcode The string to search for and replace. (Including wrapping characters.)
      */
-    private fun registerEmoji(character: String, shortcode: String)
+    private fun registerEmoji(character: String, shortcode: String, wrap: Boolean = true)
     {
         val wrappingCharacter = plugin.wrappingCharacter
         val maxLength = 16 - (2 * wrappingCharacter.length)
@@ -84,18 +90,18 @@ class Emojifier(private val plugin: EmojiTab)
             Messager.warn("Emoji name '$wrappingCharacter$shortcode$wrappingCharacter' is over 16 characters and will be trimmed!")
 
         val shortcodeCut = shortcode.take(maxLength)
-        val shortcodeWithWrapping = wrappingCharacter + shortcodeCut + wrappingCharacter
+        val shortcodeWithWrapping = if (wrap) wrappingCharacter + shortcodeCut + wrappingCharacter else shortcodeCut
 
-        if (emojiMap.containsKey(shortcodeWithWrapping))
+        if (emojiList.any { it.shortCode == shortcodeWithWrapping })
             Messager.warn("Duplicate emoji name \"$shortcode\" Please double check your emojis.yml file!")
 
         //Log emojis if verbose
         if(plugin.verbose)
-            if (!emojiMap.containsKey(character))
+            if (!emojiList.any { it.character == character })
                 Messager.send("Registered emoji $character to shortcode $shortcodeWithWrapping")
             else
                 Messager.send("§8Registered emoji $character to shortcode $shortcodeWithWrapping (as alias)")
 
-        emojiMap[shortcodeWithWrapping] = character
+        emojiList.add(Emoji(character, shortcodeWithWrapping, shortcodeCut))
     }
 }

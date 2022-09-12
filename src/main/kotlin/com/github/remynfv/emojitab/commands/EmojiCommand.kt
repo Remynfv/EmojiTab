@@ -126,22 +126,22 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         var emojiList = Component.empty()
 
         //Iterate over list of emojis
-        for (entry: MutableMap.MutableEntry<String, String> in plugin.emojifier.emojiMap)
+        for (emoji in plugin.emojifier.emojiList)
         {
             //Create a slick hoverevent
             val hover = HoverEvent.showText(
-                Component.text(entry.value).append(
-                Component.text(" " + entry.key).color(NamedTextColor.AQUA)).append(
+                Component.text(emoji.character).append(
+                Component.text(" " + emoji.shortCode).color(NamedTextColor.AQUA)).append(
                 Component.text(" /emoji").color(NamedTextColor.LIGHT_PURPLE)))
 
             //Create the clickevent
-            val clickEvent = ClickEvent.suggestCommand(entry.key)
+            val clickEvent = ClickEvent.suggestCommand(emoji.shortCode)
 
             //Create the whole component
-            val currentEmoji = Component.text(entry.value).hoverEvent(hover).clickEvent(clickEvent)
+            val currentEmoji = Component.text(emoji.character + " ").hoverEvent(hover).clickEvent(clickEvent)
 
             //Add the current emoji component to the list
-            emojiList = emojiList.append(Component.text(" ")).append(currentEmoji)
+            emojiList = emojiList.append(currentEmoji)
         }
 
         //Send the list

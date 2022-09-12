@@ -15,14 +15,11 @@ import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scoreboard.Team
 import java.io.File
 import java.io.IOException
 import java.util.*
 
-
-private const val displayName: String = "" //Any character that is invisible
-
+private const val teamName: String = "zzzzzzzzz_emoji_tab" // Team used for sorting the player list.
 class EmojiTab : JavaPlugin()
 {
     //From config.yml
@@ -71,12 +68,6 @@ class EmojiTab : JavaPlugin()
 
     private lateinit var protocolManager: ProtocolManager
 
-    /**
-     * Team with alphabetically last name to move
-     * fake players to the bottom of the player list.
-     */
-    private lateinit var team: Team
-
     override fun onEnable()
     {
         // Plugin startup logic
@@ -86,9 +77,6 @@ class EmojiTab : JavaPlugin()
         protocolManager = ProtocolLibrary.getProtocolManager()
 
         Bukkit.shouldSendChatPreviews()
-
-        team = Bukkit.getScoreboardManager().mainScoreboard.getTeam("zzzzzzzzz_emoji_tab")
-            ?: Bukkit.getScoreboardManager().mainScoreboard.registerNewTeam("zzzzzzzzz_emoji_tab")
 
         //Save Configs
         saveDefaultConfig()
@@ -116,16 +104,21 @@ class EmojiTab : JavaPlugin()
         addEmojisPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
 
         val info = ArrayList<PlayerInfoData>()
-        for (shortcode in emojifier.emojiMap.keys)
+        for (emoji in emojifier.emojiList)
         {
-            val shortcode2 = shortcode.take(16)
             val randomUUID = UUID.randomUUID()
-            val gameProfile = WrappedGameProfile(randomUUID, shortcode2)
+            val gameProfile = WrappedGameProfile(randomUUID, emoji.shortCode)
             defaultTexturesProperty = WrappedSignedProperty("textures", texture, signature)
             gameProfile.properties.put("textures", defaultTexturesProperty)
-            info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(displayName)))
+            info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText("")))
 
-            team.addEntry(gameProfile.name) //Sort tab list
+            // Sort the tab list while we're iterating through the emojis. TODO, test with multiple scoreboards in use.
+            // TODO Replace with a single team packet to be sent to players.
+            val teams = mutableSetOf(Bukkit.getScoreboardManager().mainScoreboard.getTeam(teamName) ?: Bukkit.getScoreboardManager().mainScoreboard.registerNewTeam(teamName))
+            for (player in Bukkit.getOnlinePlayers())
+                (player.scoreboard.getTeam(teamName) ?: player.scoreboard.registerNewTeam(teamName))
+
+            teams.forEach { it.addEntry(emoji.shortCode) } //Sort tab list
         }
         addEmojisPacket.data = info
 
@@ -142,7 +135,8 @@ class EmojiTab : JavaPlugin()
     fun trySendEmojiPacket(player: Player)
     {
         //If player has emojis disabled don't send them the players OR the fakeplayers
-        if (Settings.getEmojiDisabled(player) || !(player.hasPermission(Permissions.USE) || !usePermissions))
+        if (Settings.getEmojiDisabled(player)
+            || !(player.hasPermission(Permissions.USE) || !usePermissions))
             return
 
         addEmojisPacket.sendPacket(player)
@@ -161,10 +155,10 @@ class EmojiTab : JavaPlugin()
         reloadConfig()
 
         //Load config.yml settings in variables
-        config.getBoolean(Configs.VERBOSE_BOOT).let { verbose = it }
+        config.getString(Configs.WRAPPING_CHARACTER)?.let { wrappingCharacter = it }
         config.getBoolean(Configs.USE_PERMISSIONS).let { usePermissions = it }
         config.getBoolean(Configs.INDIVIDUAL_PERMISSIONS).let { individualPermissions = it }
-        config.getString(Configs.WRAPPING_CHARACTER)?.let { wrappingCharacter = it }
+        config.getBoolean(Configs.VERBOSE_BOOT).let { verbose = it }
 
         //Load custom skins
         val texture = config.getString(Configs.TEXTURE)

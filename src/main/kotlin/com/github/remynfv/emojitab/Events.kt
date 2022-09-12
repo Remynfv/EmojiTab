@@ -1,7 +1,5 @@
 package com.github.remynfv.emojitab
 
-import com.github.remynfv.emojitab.utils.Permissions
-import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -13,22 +11,36 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class Events(private val plugin: EmojiTab) : Listener
 {
-    @Suppress("UnstableApiUsage")
-    @EventHandler(priority = EventPriority.LOW)
-    fun onChatDecorate(event: AsyncChatDecorateEvent)
-    {
-        val player = event.player()
+//    @Suppress("UnstableApiUsage")
+//    @EventHandler(priority = EventPriority.LOW)
+//    fun onChatDecorate(event: AsyncChatDecorateEvent)
+//    {
+//        val player = event.player()
+//
+//        //If player lacks permission to use emojis altogether, return
+//        if (player != null && !player.hasPermission(Permissions.USE) && plugin.usePermissions)
+//            return
+//
+//        //Add emojis to any player chat
+//        val newMessage = plugin.emojifier.emojifyMessage(event.result(), player)
+//
+//        //Replace the event.message with the emojified version
+//        event.result(newMessage)
+//    }
 
-        //If player lacks permission to use emojis altogether, return
-        if (player != null && !player.hasPermission(Permissions.USE) && plugin.usePermissions)
-            return
-
-        //Add emojis to any player chat
-        val newMessage = plugin.emojifier.emojifyMessage(event.result(), player)
-
-        //Replace the event.message with the emojified version
-        event.result(newMessage)
-    }
+//    @EventHandler
+//    fun onPlayerChat(event: AsyncChatEvent)
+//    {
+//        //If player lacks permission to use emojis altogether, return
+//        if (!event.player.hasPermission(Permissions.USE) && plugin.usePermissions)
+//            return
+//
+//        //Add emojis to any player chat
+//        val newMessage = plugin.emojifier.emojifyMessage(event.message(), event.player)
+//
+//        //Replace the event.message with the emojified version
+//        event.message(newMessage)
+//    }
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent)
@@ -54,6 +66,12 @@ class Events(private val plugin: EmojiTab) : Listener
 
             }
         }.runTaskLater(plugin, 1)
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onPlayerKick(event: PlayerQuitEvent)
+    {
+        println(event.reason)
     }
 
     @EventHandler

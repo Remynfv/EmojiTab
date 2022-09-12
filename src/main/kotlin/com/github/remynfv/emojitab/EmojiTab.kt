@@ -240,7 +240,7 @@ class EmojiTab : JavaPlugin()
             val uuid = targetPlayer.uniqueId
 
             //Making the name blank magically teleports them to the top of the tab menu
-            val gameProfile = WrappedGameProfile(uuid, "") //This gets the real UUID so the latency will update
+            val gameProfile = WrappedGameProfile(uuid, " ") //This gets the real UUID so the latency will update
 
             val originalProperties = WrappedGameProfile.fromPlayer(targetPlayer).properties
             gameProfile.properties.putAll(originalProperties)

@@ -128,13 +128,13 @@ class EmojiCommand(private val plugin: EmojiTab) : TabExecutor
         //Iterate over list of emojis
         for (emoji in plugin.emojifier.emojiList)
         {
-            //Create a slick hoverevent
+            //Create a slick HoverEvent
             val hover = HoverEvent.showText(
                 Component.text(emoji.character).append(
                 Component.text(" " + emoji.shortCode).color(NamedTextColor.AQUA)).append(
                 Component.text(" /emoji").color(NamedTextColor.LIGHT_PURPLE)))
 
-            //Create the clickevent
+            //Create the ClickEvent
             val clickEvent = ClickEvent.suggestCommand(emoji.shortCode)
 
             //Create the whole component

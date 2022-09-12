@@ -1,6 +1,8 @@
 package com.github.remynfv.emojitab
 
 import com.comphenix.packetwrapper.WrapperPlayServerPlayerInfo
+import com.comphenix.packetwrapper.WrapperPlayServerScoreboardTeam
+import com.comphenix.packetwrapper.WrapperPlayServerScoreboardTeam.Mode
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
 import com.comphenix.protocol.wrappers.*
@@ -66,6 +68,18 @@ class EmojiTab : JavaPlugin()
      */
     var removeEmojisPacket: WrapperPlayServerPlayerInfo? = null
 
+    /**
+     * Packet to sort fake players in the tab menu.
+     *
+     * Works by creating a team called "zzzzzzzzz_emoji_tab" [teamName]
+     * which includes all the fake players in it.
+     *
+     * This sorts the fake players to the bottom alphabetically.
+     * Because it's sent via packets, it is persistent through scoreboard changes.
+     */
+    private lateinit var teamPacket: WrapperPlayServerScoreboardTeam
+
+
     private lateinit var protocolManager: ProtocolManager
 
     override fun onEnable()
@@ -103,6 +117,9 @@ class EmojiTab : JavaPlugin()
         addEmojisPacket = WrapperPlayServerPlayerInfo()
         addEmojisPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
 
+        //Create a packet for the teams.
+        teamPacket = WrapperPlayServerScoreboardTeam()
+
         val info = ArrayList<PlayerInfoData>()
         for (emoji in emojifier.emojiList)
         {
@@ -112,13 +129,7 @@ class EmojiTab : JavaPlugin()
             gameProfile.properties.put("textures", defaultTexturesProperty)
             info.add(PlayerInfoData(gameProfile, 0, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText("")))
 
-            // Sort the tab list while we're iterating through the emojis. TODO, test with multiple scoreboards in use.
-            // TODO Replace with a single team packet to be sent to players.
-            val teams = mutableSetOf(Bukkit.getScoreboardManager().mainScoreboard.getTeam(teamName) ?: Bukkit.getScoreboardManager().mainScoreboard.registerNewTeam(teamName))
-            for (player in Bukkit.getOnlinePlayers())
-                (player.scoreboard.getTeam(teamName) ?: player.scoreboard.registerNewTeam(teamName))
-
-            teams.forEach { it.addEntry(emoji.shortCode) } //Sort tab list
+            teamPacket.players.add(emoji.shortCode)
         }
         addEmojisPacket.data = info
 
@@ -127,6 +138,10 @@ class EmojiTab : JavaPlugin()
         removeEmojisPacket.data = addEmojisPacket.data
         removeEmojisPacket.action = EnumWrappers.PlayerInfoAction.REMOVE_PLAYER
         this.removeEmojisPacket = removeEmojisPacket
+
+        //Finish up the team packet
+        teamPacket.mode = Mode.TEAM_CREATED
+        teamPacket.name = teamName
     }
 
     /**
@@ -140,6 +155,7 @@ class EmojiTab : JavaPlugin()
             return
 
         addEmojisPacket.sendPacket(player)
+        teamPacket.sendPacket(player)
     }
 
     override fun onDisable()

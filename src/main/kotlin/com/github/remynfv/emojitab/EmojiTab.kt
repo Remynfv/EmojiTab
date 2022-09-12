@@ -187,10 +187,10 @@ class EmojiTab : JavaPlugin()
         this.removeEmojisPacket = removeEmojisPacket
     }
 
-    private fun updateVisiblePlayers(player: Player)
+    private fun updateVisiblePlayers(player: Player, mode: EnumWrappers.PlayerInfoAction)
     {
         val updateDisplayNamesPacket = WrapperPlayServerPlayerInfo()
-        updateDisplayNamesPacket.action = EnumWrappers.PlayerInfoAction.ADD_PLAYER
+        updateDisplayNamesPacket.action = mode
 
         val info = ArrayList<PlayerInfoData>()
 
@@ -306,9 +306,10 @@ class EmojiTab : JavaPlugin()
         if (Settings.getEmojiDisabled(player) || !(player.hasPermission(Permissions.USE) || !usePermissions))
             return
 
-//        addEmojisPacket.sendPacket(player)
+        addEmojisPacket.sendPacket(player)
 
-        updateVisiblePlayers(player)
+        updateVisiblePlayers(player, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER)
+        updateVisiblePlayers(player, EnumWrappers.PlayerInfoAction.ADD_PLAYER)
     }
 
     fun sendRemoveEmojiPackets(player: Player)

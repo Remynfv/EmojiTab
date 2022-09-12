@@ -5,6 +5,7 @@ import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 
 
 class Events(private val plugin: EmojiTab) : Listener
@@ -24,5 +25,11 @@ class Events(private val plugin: EmojiTab) : Listener
 
         //Replace the event.message with the emojified version
         event.result(newMessage)
+    }
+
+    @EventHandler
+    fun onPlayerJoin(e: PlayerJoinEvent)
+    {
+        plugin.trySendEmojiPacket(e.player)
     }
 }

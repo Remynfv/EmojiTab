@@ -107,6 +107,17 @@ class EmojiTab : JavaPlugin()
         //Register events
         server.pluginManager.registerEvents(Events(this), this)
 
+        //Compatibility with Bukkit/Spigot
+        try
+        {
+            server.pluginManager.registerEvents(PaperEvents(this), this)
+        }
+        catch (e: ClassNotFoundException)
+        {
+            server.pluginManager.registerEvents(BukkitEvents(this), this)
+            logger.warning("Server is running Spigot/Bukkit. Starting EmojiTab in compatibility mode!")
+        }
+
         for (player in Bukkit.getOnlinePlayers())
             trySendEmojiPacket(player) // Load emojis for any players who are online after /reload
     }

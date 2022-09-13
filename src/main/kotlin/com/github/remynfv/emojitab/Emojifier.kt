@@ -17,6 +17,20 @@ class Emojifier(private val plugin: EmojiTab)
     var emojiList = mutableListOf<Emoji>()
 
     /**
+     * Returns a string with shortcodes replaced by emojis
+     */
+    fun emojifyString(message: String): String
+    {
+        var newMessage = message
+        for (emoji in emojiList)
+        {
+            if (message.contains(emoji.shortCode))
+                newMessage = message.replace(emoji.shortCode, emoji.character)
+        }
+        return newMessage
+    }
+
+    /**
      * Returns Component with shortcodes replaced by emojis
      */
     fun emojifyMessage(message: @NotNull Component, permissionHolder: Permissible?): Component

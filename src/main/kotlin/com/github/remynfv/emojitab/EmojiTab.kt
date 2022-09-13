@@ -84,6 +84,18 @@ class EmojiTab : JavaPlugin()
 
     override fun onEnable()
     {
+        // Disable and warn if attempting to load on Spigot/Bukkit.
+        try
+        {
+            Class.forName("io.papermc.paper.configuration.Configuration")
+        }
+        catch (e: ClassNotFoundException)
+        {
+            logger.warning("This plugin currently only supports Paper!")
+            pluginLoader.disablePlugin(this)
+            return
+        }
+
         // Plugin startup logic
         Messager.send("Loaded!")
 

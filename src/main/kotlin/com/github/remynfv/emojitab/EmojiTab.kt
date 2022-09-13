@@ -110,7 +110,6 @@ class EmojiTab : JavaPlugin()
         //Compatibility with Bukkit/Spigot
         try
         {
-            Class.forName("io.papermc.paper.event.player.AsyncChatDecorateEvent")
             server.pluginManager.registerEvents(PaperEvents(this), this)
         }
         catch (e: ClassNotFoundException)

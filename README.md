@@ -1,9 +1,5 @@
 # EmojiTab
 
-
-
-# EmojiTab
-
 <img src="images/EmojiTab-banner.gif" alt="EmojiTab banner" width="400"/>
 
 A Paper plugin to add emoji shortcodes to Minecraft, with tab completion. :thumbsup:

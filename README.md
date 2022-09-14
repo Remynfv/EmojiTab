@@ -1,5 +1,4 @@
 # EmojiTab
-
 <img src="images/EmojiTab-banner.gif" alt="EmojiTab banner" width="400"/>
 
 A Paper plugin to add emoji shortcodes to Minecraft, with tab completion. :thumbsup:
@@ -7,9 +6,7 @@ A Paper plugin to add emoji shortcodes to Minecraft, with tab completion. :thumb
 Here's a demo of the plugin in action:<br>
 ![Demo](images/EmojiTab-demo.gif)
 
-
 ## Table of Contents
-
 - [Background](#background)
   - [How does it work?](#how-does-it-work)
 - [Installation](#installation)
@@ -27,6 +24,8 @@ EmojiTab creates a fake "player" in the player list for each emoji shortcode. Th
 The players all appear to have no name, and have a gray skin to blend in with the player list's background (this can be [configured](#config).) This is how the big networks do it too, but you might not notice it because the player lists are usually quite full.
 
 To keep these fake players from appearing above _real_ players they are added to a fake scoreboard team called ``zzzzzzzzz_emoji_tab``.
+
+<img src="images/player-list.png" alt="Player list full of gray blank players" width="500"/>
 
 #### Compatibility
 EmojiTab should be compatible with all other chat/player list plugins. This is because everything is sent via packets, so none of the players/teams exist on the server. You'll notice that if you run ``/team list``, the team for sorting does not show up. On the backend, this means even if a player is looking at a custom plugin scoreboard, the team's sorting will still be in effect. If you run into any compatibility issues with other plugins, let me know!
@@ -52,6 +51,8 @@ This plugin depends on [ProtocolLib](https://ci.dmulloy2.net/job/ProtocolLib/) f
 ``/emoji list`` - List all emojis in chat. Hover over them to see names, and click to enter it in chat.
 
 ``/emoji`` - Shortcut for ``/emoji list``
+
+<img src="images/hover-event.png" alt="Screenshot showing /emoji" width="250"/>
 
 ### Config
 EmojiTab has two config files. ``config.yml`` is for plugin-wide configuration settings. ``emojis.yml`` is where you define your own emojis.
@@ -88,6 +89,8 @@ By default, ``emojis.yml`` is populated with [many of the characters](https://mi
 An emoji can be one character ``⚔`` or multiple ``(ノಠ益ಠ)ノ彡┻━┻``. Custom characters can be added using a resource pack with a custom font.
 
 ``name`` is what you type in chat to make the emoji appear. ``aliases`` is any number of alternate names for the same emoji.
+
+NOTE: The combined length of ``name`` and ``emoji-wrapping`` (found in config.yml) cannot exceed 16 characters. This is a hard limit in Minecraft, and any emoji shortcodes longer than 16 characters will be truncated (you'll get a warning in the console, too.)
 ```yaml
 emojis:
   ⚔:
@@ -206,8 +209,7 @@ emojis:
     name: check_box
   (ノಠ益ಠ)ノ彡┻━┻:
     name: table_flip
-
 ```
 
 ## Contributing
-PRs welcome! If you have any questions, you can usually find me in my [Discord server](https://discord.gg/6d6RBxAkMx).
+PRs welcome! The source code is pretty well documented. If you have any questions, you can usually find me in my [Discord server](https://discord.gg/6d6RBxAkMx).

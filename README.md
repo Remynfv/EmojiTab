@@ -15,6 +15,7 @@ Here's a demo of the plugin in action:<br>
 ## Table of Contents
 
 - [Background](#background)
+  - [How does it work?](#how-does-it-work)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Commands](#commands)
